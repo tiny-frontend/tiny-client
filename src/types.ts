@@ -3,3 +3,7 @@ export interface LoadSmolFrontendOptions {
   contractVersion: string;
   smolApiEndpoint: string;
 }
+
+export interface SmolFrontendModuleConfig {
+  umdBundle: string;
+}

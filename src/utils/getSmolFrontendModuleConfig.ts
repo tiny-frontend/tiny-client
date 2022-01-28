@@ -1,10 +1,11 @@
 import { SmolClientFetchError } from "../errors";
+import { SmolFrontendModuleConfig } from "../types";
 
-export const getSmolFrontendUmdBundleName = async (
+export const getSmolFrontendModuleConfig = async (
   libraryName: string,
   libraryVersion: string,
   hostname: string
-): Promise<string> => {
+): Promise<SmolFrontendModuleConfig> => {
   let response;
 
   try {
@@ -28,6 +29,17 @@ export const getSmolFrontendUmdBundleName = async (
     );
   }
 
-  const responseJson = await response.json();
-  return responseJson.umdBundle;
+  let responseJson: SmolFrontendModuleConfig;
+
+  try {
+    responseJson = await response.json();
+  } catch (err) {
+    throw new SmolClientFetchError(
+      libraryName,
+      libraryVersion,
+      `while getting JSON body`
+    );
+  }
+
+  return responseJson;
 };

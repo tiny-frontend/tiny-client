@@ -3,7 +3,7 @@ import {
   SmolClientLoadBundleError,
 } from "./errors";
 import { LoadSmolFrontendOptions } from "./types";
-import { getSmolFrontendUmdBundleName } from "./utils/getSmolFrontendUmdBundleName";
+import { getSmolFrontendModuleConfig } from "./utils/getSmolFrontendModuleConfig";
 import { loadUmdModule } from "./utils/loadUmdModule";
 
 export const loadSmolFrontendClient = async <T>({
@@ -11,7 +11,7 @@ export const loadSmolFrontendClient = async <T>({
   contractVersion,
   smolApiEndpoint,
 }: LoadSmolFrontendOptions): Promise<T> => {
-  const smolFrontendUmdBundleName = await getSmolFrontendUmdBundleName(
+  const smolFrontendModuleConfig = await getSmolFrontendModuleConfig(
     name,
     contractVersion,
     smolApiEndpoint
@@ -19,7 +19,7 @@ export const loadSmolFrontendClient = async <T>({
 
   try {
     await loadUmdModule(
-      `${smolApiEndpoint}/smol/bundle/${smolFrontendUmdBundleName}`
+      `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`
     );
   } catch (err) {
     console.error(err);
