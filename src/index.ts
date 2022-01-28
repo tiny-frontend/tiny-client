@@ -1,13 +1,11 @@
 import "@ungap/global-this";
 
-import fetch from "isomorphic-unfetch";
-
 import {
   SmolClientExportsMissingOnGlobalError,
   SmolClientFetchError,
   SmolClientLoadBundleError,
 } from "./errors";
-import { loadScript } from "./load-script";
+import { loadModule } from "./load-module";
 
 const getSmolFrontendUmdBundleName = async (
   libraryName: string,
@@ -59,10 +57,11 @@ export const loadSmolFrontend = async <T>({
   );
 
   try {
-    await loadScript(
+    await loadModule(
       `${smolApiEndpoint}/smol/bundle/${smolFrontendUmdBundleName}`
     );
   } catch (err) {
+    console.error(err);
     throw new SmolClientLoadBundleError(name);
   }
 
