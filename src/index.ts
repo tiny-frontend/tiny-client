@@ -1,6 +1,6 @@
 import "@ungap/global-this";
 
-import fetch from "cross-fetch";
+import fetch from "isomorphic-unfetch";
 
 import {
   SmolClientExportsMissingOnGlobalError,
