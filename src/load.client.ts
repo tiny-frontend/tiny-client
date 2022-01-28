@@ -4,7 +4,7 @@ import {
 } from "./errors";
 import { LoadSmolFrontendOptions } from "./types";
 import { getSmolFrontendModuleConfig } from "./utils/getSmolFrontendModuleConfig";
-import { loadUmdModule } from "./utils/loadUmdModule";
+import { loadUmdBundle } from "./utils/loadUmdBundle";
 
 export const loadSmolFrontendClient = async <T>({
   name,
@@ -18,7 +18,7 @@ export const loadSmolFrontendClient = async <T>({
   );
 
   try {
-    await loadUmdModule(
+    await loadUmdBundle(
       `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`
     );
   } catch (err) {
