@@ -1,6 +1,6 @@
 const loadModulesPromiseMap = new Map<string, Promise<void>>();
 
-export const loadModule = (moduleUrl: string): Promise<void> => {
+export const loadUmdModule = (moduleUrl: string): Promise<void> => {
   if (loadModulesPromiseMap.has(moduleUrl)) {
     return loadModulesPromiseMap.get(moduleUrl) as Promise<void>;
   }
