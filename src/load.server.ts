@@ -1,3 +1,5 @@
+import "@ungap/global-this";
+
 import {
   SmolClientExportsMissingOnGlobalError,
   SmolClientLoadBundleError,
@@ -22,10 +24,10 @@ export const loadSmolFrontendServer = async <T>({
     smolApiEndpoint
   );
 
+  const umdModuleUrl = `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`;
+
   try {
-    await loadUmdBundle(
-      `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`
-    );
+    await loadUmdBundle(umdModuleUrl);
   } catch (err) {
     console.error(err);
     throw new SmolClientLoadBundleError(name);
@@ -38,11 +40,16 @@ export const loadSmolFrontendServer = async <T>({
 
   const smolFrontendScriptTagToAddToSsrResult = `
 <script>
-    window.smolFrontend${name}Config = ${JSON.stringify(
-    smolFrontendModuleConfig
-  )}
+window.smolFrontendBackupDefine = window.define;
+window.define = function (deps, module) {
+  window["smolFrontend${name}"] = [deps, module];
+}
+window.define.amd = true
 </script>
-  `;
-
+<script src="${umdModuleUrl}"></script>
+<script>
+window.define = window.smolFrontendBackupDefine;
+</script>
+`;
   return { smolFrontend, smolFrontendScriptTagToAddToSsrResult };
 };
