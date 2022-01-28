@@ -7,4 +7,5 @@ export interface LoadSmolFrontendOptions {
 
 export interface SmolFrontendModuleConfig {
   umdBundle: string;
+  cssBundle?: string;
 }

@@ -24,10 +24,13 @@ export const loadSmolFrontendServer = async <T>({
     smolApiEndpoint
   );
 
-  const umdModuleUrl = `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`;
+  const umdBundleUrl = `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`;
+  const cssBundleUrl = smolFrontendModuleConfig.cssBundle
+    ? `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.cssBundle}`
+    : undefined;
 
   try {
-    await loadUmdBundle(umdModuleUrl);
+    await loadUmdBundle(umdBundleUrl);
   } catch (err) {
     console.error(err);
     throw new SmolClientLoadBundleError(name);
@@ -39,6 +42,7 @@ export const loadSmolFrontendServer = async <T>({
   }
 
   const smolFrontendScriptTagToAddToSsrResult = `
+${cssBundleUrl ? `<link rel="stylesheet" href="${cssBundleUrl}">` : ""}
 <script>
 window.smolFrontendBackupDefine = window.define;
 window.define = function (deps, module) {
@@ -46,7 +50,7 @@ window.define = function (deps, module) {
 }
 window.define.amd = true
 </script>
-<script src="${umdModuleUrl}"></script>
+<script src="${umdBundleUrl}"></script>
 <script>
 window.define = window.smolFrontendBackupDefine;
 </script>
