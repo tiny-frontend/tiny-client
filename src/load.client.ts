@@ -2,7 +2,7 @@ import {
   SmolClientExportsMissingOnGlobalError,
   SmolClientLoadBundleError,
 } from "./errors";
-import { LoadSmolFrontendOptions } from "./types";
+import { LoadSmolFrontendOptions, SmolFrontendModuleConfig } from "./types";
 import { getSmolFrontendModuleConfig } from "./utils/getSmolFrontendModuleConfig";
 import { loadUmdBundle } from "./utils/loadUmdBundle";
 
@@ -11,11 +11,13 @@ export const loadSmolFrontendClient = async <T>({
   contractVersion,
   smolApiEndpoint,
 }: LoadSmolFrontendOptions): Promise<T> => {
-  const smolFrontendModuleConfig = await getSmolFrontendModuleConfig(
-    name,
-    contractVersion,
-    smolApiEndpoint
-  );
+  const smolFrontendModuleConfigFromSsr = (
+    window as unknown as Record<string, SmolFrontendModuleConfig | undefined>
+  )[`smolFrontend${name}Config`];
+
+  const smolFrontendModuleConfig =
+    smolFrontendModuleConfigFromSsr ??
+    (await getSmolFrontendModuleConfig(name, contractVersion, smolApiEndpoint));
 
   try {
     await loadUmdBundle(
