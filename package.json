@@ -4,8 +4,21 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build && tsc --emitDeclarationOnly",
     "preview": "vite preview"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/smol-client.umd.js",
+  "module": "./dist/smol-client.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/smol-client.es.js",
+      "require": "./dist/smol-client.umd.js"
+    }
   },
   "devDependencies": {
     "@cazoo/eslint-plugin-eslint": "^1.0.2",
@@ -15,6 +28,6 @@
   },
   "dependencies": {
     "@ungap/global-this": "^0.4.4",
-    "isomorphic-unfetch": "^3.1.0"
+    "cross-fetch": "^3.1.5"
   }
 }
