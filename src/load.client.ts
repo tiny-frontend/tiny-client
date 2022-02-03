@@ -1,7 +1,4 @@
-import {
-  SmolClientExportsMissingOnGlobalError,
-  SmolClientLoadBundleError,
-} from "./errors";
+import { SmolClientLoadBundleError } from "./errors";
 import { LoadSmolFrontendOptions, SmolFrontendModuleConfig } from "./types";
 import { getSmolFrontendModuleConfig } from "./utils/getSmolFrontendModuleConfig";
 import { loadUmdBundle } from "./utils/loadUmdBundle";
@@ -33,20 +30,14 @@ export const loadSmolFrontendClient = async <T>({
     (await getSmolFrontendModuleConfig(name, contractVersion, smolApiEndpoint));
 
   try {
-    await loadUmdBundle(
-      `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`
+    return await loadUmdBundle(
+      `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`,
+      dependenciesMap
     );
   } catch (err) {
     console.error(err);
     throw new SmolClientLoadBundleError(name);
   }
-
-  const smolFrontend = (globalThis as unknown as Record<string, T>)[name];
-  if (!smolFrontend) {
-    throw new SmolClientExportsMissingOnGlobalError(name);
-  }
-
-  return smolFrontend;
 };
 
 const loadCapturedSmolFrontendUmdModule = <T>(

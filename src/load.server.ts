@@ -1,9 +1,6 @@
 import "@ungap/global-this";
 
-import {
-  SmolClientExportsMissingOnGlobalError,
-  SmolClientLoadBundleError,
-} from "./errors";
+import { SmolClientLoadBundleError } from "./errors";
 import { LoadSmolFrontendOptions } from "./types";
 import { getSmolFrontendModuleConfig } from "./utils/getSmolFrontendModuleConfig";
 import { loadUmdBundle } from "./utils/loadUmdBundle";
@@ -17,6 +14,7 @@ export const loadSmolFrontendServer = async <T>({
   name,
   contractVersion,
   smolApiEndpoint,
+  dependenciesMap = {},
 }: LoadSmolFrontendOptions): Promise<SmolFrontendServerResponse<T>> => {
   const smolFrontendModuleConfig = await getSmolFrontendModuleConfig(
     name,
@@ -30,18 +28,9 @@ export const loadSmolFrontendServer = async <T>({
     : undefined;
 
   try {
-    await loadUmdBundle(umdBundleUrl);
-  } catch (err) {
-    console.error(err);
-    throw new SmolClientLoadBundleError(name);
-  }
+    const smolFrontend = await loadUmdBundle<T>(umdBundleUrl, dependenciesMap);
 
-  const smolFrontend = (globalThis as unknown as Record<string, T>)[name];
-  if (!smolFrontend) {
-    throw new SmolClientExportsMissingOnGlobalError(name);
-  }
-
-  const smolFrontendScriptTagToAddToSsrResult = `
+    const smolFrontendScriptTagToAddToSsrResult = `
 ${cssBundleUrl ? `<link rel="stylesheet" href="${cssBundleUrl}">` : ""}
 <script>
 window.smolFrontendBackupDefine = window.define;
@@ -55,5 +44,9 @@ window.define.amd = true
 window.define = window.smolFrontendBackupDefine;
 </script>
 `;
-  return { smolFrontend, smolFrontendScriptTagToAddToSsrResult };
+    return { smolFrontend, smolFrontendScriptTagToAddToSsrResult };
+  } catch (err) {
+    console.error(err);
+    throw new SmolClientLoadBundleError(name);
+  }
 };

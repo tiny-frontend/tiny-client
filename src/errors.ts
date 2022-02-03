@@ -13,10 +13,3 @@ export class SmolClientLoadBundleError extends Error {
     this.name = "SmolClientLoadBundleError";
   }
 }
-
-export class SmolClientExportsMissingOnGlobalError extends Error {
-  constructor(libraryName: string) {
-    super(`Failed to find smol frontend ${libraryName} on global scope`);
-    this.name = "SmolClientExportsMissingOnGlobalError";
-  }
-}
