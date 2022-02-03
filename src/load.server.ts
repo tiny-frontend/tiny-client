@@ -7,7 +7,7 @@ import { loadUmdBundle } from "./utils/loadUmdBundle";
 
 interface SmolFrontendServerResponse<T> {
   smolFrontend: T;
-  smolFrontendScriptTagToAddToSsrResult: string;
+  smolFrontendStringToAddToSsrResult: string;
 }
 
 export const loadSmolFrontendServer = async <T>({
@@ -30,21 +30,19 @@ export const loadSmolFrontendServer = async <T>({
   try {
     const smolFrontend = await loadUmdBundle<T>(umdBundleUrl, dependenciesMap);
 
-    const smolFrontendScriptTagToAddToSsrResult = `
+    const smolFrontendStringToAddToSsrResult = `
 ${cssBundleUrl ? `<link rel="stylesheet" href="${cssBundleUrl}">` : ""}
+<link rel="preload" href="${umdBundleUrl}" as="script">
 <script>
-window.smolFrontendBackupDefine = window.define;
-window.define = function (deps, module) {
-  window["smolFrontend${name}"] = [deps, module];
-}
-window.define.amd = true
-</script>
-<script src="${umdBundleUrl}"></script>
-<script>
-window.define = window.smolFrontendBackupDefine;
+window["smolFrontend${name}Config"] = ${JSON.stringify(
+      smolFrontendModuleConfig
+    )}
 </script>
 `;
-    return { smolFrontend, smolFrontendScriptTagToAddToSsrResult };
+    return {
+      smolFrontend,
+      smolFrontendStringToAddToSsrResult,
+    };
   } catch (err) {
     console.error(err);
     throw new SmolClientLoadBundleError(name);

@@ -3,24 +3,12 @@ import { LoadSmolFrontendOptions, SmolFrontendModuleConfig } from "./types";
 import { getSmolFrontendModuleConfig } from "./utils/getSmolFrontendModuleConfig";
 import { loadUmdBundle } from "./utils/loadUmdBundle";
 
-type CapturedUmdModule<T> = [string[], (...deps: unknown[]) => T];
-
 export const loadSmolFrontendClient = async <T>({
   name,
   contractVersion,
   smolApiEndpoint,
   dependenciesMap = {},
 }: LoadSmolFrontendOptions): Promise<T> => {
-  const capturedSmolFrontendUmdModule = (
-    window as unknown as Record<string, CapturedUmdModule<T>>
-  )[`smolFrontend${name}`];
-  if (capturedSmolFrontendUmdModule) {
-    return loadCapturedSmolFrontendUmdModule(
-      capturedSmolFrontendUmdModule,
-      dependenciesMap
-    );
-  }
-
   const smolFrontendModuleConfigFromSsr = (
     window as unknown as Record<string, SmolFrontendModuleConfig | undefined>
   )[`smolFrontend${name}Config`];
@@ -31,11 +19,12 @@ export const loadSmolFrontendClient = async <T>({
 
   if (smolFrontendModuleConfig.cssBundle) {
     const cssBundleUrl = `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.cssBundle}`;
-
-    const cssElement = document.createElement("link");
-    cssElement.rel = "stylesheet";
-    cssElement.href = cssBundleUrl;
-    document.head.appendChild(cssElement);
+    if (!hasStylesheet(cssBundleUrl)) {
+      const cssElement = document.createElement("link");
+      cssElement.rel = "stylesheet";
+      cssElement.href = cssBundleUrl;
+      document.head.appendChild(cssElement);
+    }
   }
 
   try {
@@ -49,10 +38,5 @@ export const loadSmolFrontendClient = async <T>({
   }
 };
 
-const loadCapturedSmolFrontendUmdModule = <T>(
-  capturedSmolFrontendUmdModule: CapturedUmdModule<T>,
-  dependenciesMap: Record<string, unknown>
-): T => {
-  const [moduleDeps, module] = capturedSmolFrontendUmdModule;
-  return module(...moduleDeps.map((dep) => dependenciesMap[dep]));
-};
+const hasStylesheet = (stylesheetHref: string): boolean =>
+  !!document.querySelector(`link[rel="stylesheet"][href="${stylesheetHref}"]`);
