@@ -29,6 +29,15 @@ export const loadSmolFrontendClient = async <T>({
     smolFrontendModuleConfigFromSsr ??
     (await getSmolFrontendModuleConfig(name, contractVersion, smolApiEndpoint));
 
+  if (smolFrontendModuleConfig.cssBundle) {
+    const cssBundleUrl = `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.cssBundle}`;
+
+    const cssElement = document.createElement("link");
+    cssElement.rel = "stylesheet";
+    cssElement.href = cssBundleUrl;
+    document.head.appendChild(cssElement);
+  }
+
   try {
     return await loadUmdBundle(
       `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`,
