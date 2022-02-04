@@ -5,7 +5,7 @@ import { LoadTinyFrontendOptions } from "./types";
 import { getTinyFrontendModuleConfig } from "./utils/getTinyFrontendModuleConfig";
 import { loadUmdBundle } from "./utils/loadUmdBundle";
 
-interface TinyFrontendServerResponse<T> {
+export interface TinyFrontendServerResponse<T> {
   tinyFrontend: T;
   tinyFrontendStringToAddToSsrResult: string;
 }

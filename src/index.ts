@@ -1,2 +1,2 @@
 export { loadTinyFrontendClient } from "./load.client";
-export { loadTinyFrontendServer } from "./load.server";
+export * from "./load.server";
