@@ -32,7 +32,7 @@ export const loadSmolFrontendServer = async <T>({
 
     const smolFrontendStringToAddToSsrResult = `
 ${cssBundleUrl ? `<link rel="stylesheet" href="${cssBundleUrl}">` : ""}
-<link rel="preload" href="${umdBundleUrl}" as="script">
+<link rel="preload" href="${umdBundleUrl}" as="fetch" crossorigin="anonymous">
 <script>
 window["smolFrontend${name}Config"] = ${JSON.stringify(
       smolFrontendModuleConfig

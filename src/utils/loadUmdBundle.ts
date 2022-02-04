@@ -1,25 +1,43 @@
 import "@ungap/global-this";
 
-const loadUmdBundlesPromiseCacheMap = new Map<string, Promise<unknown>>();
+const umdBundlesPromiseCacheMap = new Map<string, Promise<unknown>>();
 
 export const loadUmdBundle = async <T>(
   bundleUrl: string,
   dependenciesMap: Record<string, unknown>
 ): Promise<T> => {
-  if (loadUmdBundlesPromiseCacheMap.has(bundleUrl)) {
-    return (await loadUmdBundlesPromiseCacheMap.get(bundleUrl)) as Promise<T>;
+  if (umdBundlesPromiseCacheMap.has(bundleUrl)) {
+    return (await umdBundlesPromiseCacheMap.get(bundleUrl)) as Promise<T>;
   }
 
-  const modulePromise = loadUmdBundleInternal<T>(bundleUrl, dependenciesMap);
-  loadUmdBundlesPromiseCacheMap.set(bundleUrl, modulePromise);
+  const umdBundlePromise = loadUmdBundleWithoutCache<T>(
+    bundleUrl,
+    dependenciesMap
+  );
+  umdBundlesPromiseCacheMap.set(bundleUrl, umdBundlePromise);
 
-  return modulePromise;
+  return await umdBundlePromise;
 };
 
-const loadUmdBundleInternal = async <T>(
+export const loadUmdBundleWithoutCache = async <T>(
   bundleUrl: string,
   dependenciesMap: Record<string, unknown>
 ): Promise<T> => {
+  const umdBundleSourceResponse = await fetch(bundleUrl);
+
+  if (umdBundleSourceResponse.status >= 400) {
+    throw new Error(`Failed to fetch umd bundle at URL ${bundleUrl}`);
+  }
+
+  const umdBundleSource = await umdBundleSourceResponse.text();
+
+  return evalUmdBundle<T>(umdBundleSource, dependenciesMap);
+};
+
+const evalUmdBundle = <T>(
+  umdBundleSource: string,
+  dependenciesMap: Record<string, unknown>
+): T => {
   const previousDefine = globalThis.define;
 
   let module: T | undefined = undefined;
@@ -43,13 +61,7 @@ const loadUmdBundleInternal = async <T>(
   (globalThis.define as unknown as Record<string, boolean>)["amd"] = true;
 
   try {
-    if (typeof document !== "undefined") {
-      await loadBundleCodeUsingScriptTag(bundleUrl);
-    } else {
-      await loadBundleCodeUsingEval(bundleUrl);
-    }
-  } catch (err) {
-    throw new Error("Error while loading script for umd bundle");
+    new Function(umdBundleSource)();
   } finally {
     globalThis.define = previousDefine;
   }
@@ -59,21 +71,6 @@ const loadUmdBundleInternal = async <T>(
   }
 
   return module;
-};
-
-const loadBundleCodeUsingEval = async (bundleUrl: string) => {
-  const response = await fetch(bundleUrl);
-  new Function(await response.text())();
-};
-
-const loadBundleCodeUsingScriptTag = async (bundleUrl: string) => {
-  return new Promise<void>((resolve, reject) => {
-    const scriptTag = document.createElement("script");
-    scriptTag.addEventListener("load", () => resolve());
-    scriptTag.addEventListener("error", () => reject());
-    scriptTag.src = bundleUrl;
-    document.body.appendChild(scriptTag);
-  });
 };
 
 declare global {
