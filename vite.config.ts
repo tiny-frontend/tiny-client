@@ -5,8 +5,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: "./src/index.ts",
-      name: "smolClient",
-      fileName: (format) => `smol-client.${format}.js`,
+      name: "tinyClient",
+      fileName: (format) => `tiny-client.${format}.js`,
     },
   },
 });

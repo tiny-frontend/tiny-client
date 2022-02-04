@@ -1,24 +1,24 @@
-import { SmolClientLoadBundleError } from "./errors";
-import { LoadSmolFrontendOptions, SmolFrontendModuleConfig } from "./types";
-import { getSmolFrontendModuleConfig } from "./utils/getSmolFrontendModuleConfig";
+import { TinyClientLoadBundleError } from "./errors";
+import { LoadTinyFrontendOptions, TinyFrontendModuleConfig } from "./types";
+import { getTinyFrontendModuleConfig } from "./utils/getTinyFrontendModuleConfig";
 import { loadUmdBundle } from "./utils/loadUmdBundle";
 
-export const loadSmolFrontendClient = async <T>({
+export const loadTinyFrontendClient = async <T>({
   name,
   contractVersion,
-  smolApiEndpoint,
+  tinyApiEndpoint,
   dependenciesMap = {},
-}: LoadSmolFrontendOptions): Promise<T> => {
-  const smolFrontendModuleConfigFromSsr = (
-    window as unknown as Record<string, SmolFrontendModuleConfig | undefined>
-  )[`smolFrontend${name}Config`];
+}: LoadTinyFrontendOptions): Promise<T> => {
+  const tinyFrontendModuleConfigFromSsr = (
+    window as unknown as Record<string, TinyFrontendModuleConfig | undefined>
+  )[`tinyFrontend${name}Config`];
 
-  const smolFrontendModuleConfig =
-    smolFrontendModuleConfigFromSsr ??
-    (await getSmolFrontendModuleConfig(name, contractVersion, smolApiEndpoint));
+  const tinyFrontendModuleConfig =
+    tinyFrontendModuleConfigFromSsr ??
+    (await getTinyFrontendModuleConfig(name, contractVersion, tinyApiEndpoint));
 
-  if (smolFrontendModuleConfig.cssBundle) {
-    const cssBundleUrl = `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.cssBundle}`;
+  if (tinyFrontendModuleConfig.cssBundle) {
+    const cssBundleUrl = `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.cssBundle}`;
     if (!hasStylesheet(cssBundleUrl)) {
       const cssElement = document.createElement("link");
       cssElement.rel = "stylesheet";
@@ -29,12 +29,12 @@ export const loadSmolFrontendClient = async <T>({
 
   try {
     return await loadUmdBundle(
-      `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`,
+      `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.umdBundle}`,
       dependenciesMap
     );
   } catch (err) {
     console.error(err);
-    throw new SmolClientLoadBundleError(name);
+    throw new TinyClientLoadBundleError(name);
   }
 };
 

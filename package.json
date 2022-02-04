@@ -1,5 +1,5 @@
 {
-  "name": "@smol-frontend/client",
+  "name": "@tiny-frontend/client",
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
@@ -11,12 +11,12 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/smol-client.umd.js",
-  "module": "./dist/smol-client.es.js",
+  "main": "./dist/tiny-client.umd.js",
+  "module": "./dist/tiny-client.es.js",
   "exports": {
     ".": {
-      "import": "./dist/smol-client.es.js",
-      "require": "./dist/smol-client.umd.js"
+      "import": "./dist/tiny-client.es.js",
+      "require": "./dist/tiny-client.umd.js"
     }
   },
   "devDependencies": {

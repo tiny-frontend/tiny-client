@@ -1,7 +1,7 @@
-# smol frontend client
+# tiny frontend client
 
 ```
 ⚠️ WIP
 ```
 
-Consumes [smol frontend](https://github.com/smol-frontend) modules at runtime.
+Consumes [tiny frontend](https://github.com/tiny-frontend) modules at runtime.

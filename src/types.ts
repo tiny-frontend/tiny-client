@@ -1,11 +1,11 @@
-export interface LoadSmolFrontendOptions {
+export interface LoadTinyFrontendOptions {
   name: string;
   contractVersion: string;
-  smolApiEndpoint: string;
+  tinyApiEndpoint: string;
   dependenciesMap?: Record<string, unknown>;
 }
 
-export interface SmolFrontendModuleConfig {
+export interface TinyFrontendModuleConfig {
   umdBundle: string;
   cssBundle?: string;
 }

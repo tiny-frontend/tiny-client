@@ -1,15 +1,15 @@
-export class SmolClientFetchError extends Error {
+export class TinyClientFetchError extends Error {
   constructor(libraryName: string, libraryVersion: string, message: string) {
     super(
-      `Failed to fetch smol frontend ${libraryName} version ${libraryVersion} from API, ${message}`
+      `Failed to fetch tiny frontend ${libraryName} version ${libraryVersion} from API, ${message}`
     );
-    this.name = "SmolClientFetchError";
+    this.name = "TinyClientFetchError";
   }
 }
 
-export class SmolClientLoadBundleError extends Error {
+export class TinyClientLoadBundleError extends Error {
   constructor(libraryName: string) {
-    super(`Failed to load script for smol frontend ${libraryName}`);
-    this.name = "SmolClientLoadBundleError";
+    super(`Failed to load script for tiny frontend ${libraryName}`);
+    this.name = "TinyClientLoadBundleError";
   }
 }

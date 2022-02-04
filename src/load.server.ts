@@ -1,50 +1,50 @@
 import "@ungap/global-this";
 
-import { SmolClientLoadBundleError } from "./errors";
-import { LoadSmolFrontendOptions } from "./types";
-import { getSmolFrontendModuleConfig } from "./utils/getSmolFrontendModuleConfig";
+import { TinyClientLoadBundleError } from "./errors";
+import { LoadTinyFrontendOptions } from "./types";
+import { getTinyFrontendModuleConfig } from "./utils/getTinyFrontendModuleConfig";
 import { loadUmdBundle } from "./utils/loadUmdBundle";
 
-interface SmolFrontendServerResponse<T> {
-  smolFrontend: T;
-  smolFrontendStringToAddToSsrResult: string;
+interface TinyFrontendServerResponse<T> {
+  tinyFrontend: T;
+  tinyFrontendStringToAddToSsrResult: string;
 }
 
-export const loadSmolFrontendServer = async <T>({
+export const loadTinyFrontendServer = async <T>({
   name,
   contractVersion,
-  smolApiEndpoint,
+  tinyApiEndpoint,
   dependenciesMap = {},
-}: LoadSmolFrontendOptions): Promise<SmolFrontendServerResponse<T>> => {
-  const smolFrontendModuleConfig = await getSmolFrontendModuleConfig(
+}: LoadTinyFrontendOptions): Promise<TinyFrontendServerResponse<T>> => {
+  const tinyFrontendModuleConfig = await getTinyFrontendModuleConfig(
     name,
     contractVersion,
-    smolApiEndpoint
+    tinyApiEndpoint
   );
 
-  const umdBundleUrl = `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.umdBundle}`;
-  const cssBundleUrl = smolFrontendModuleConfig.cssBundle
-    ? `${smolApiEndpoint}/smol/bundle/${smolFrontendModuleConfig.cssBundle}`
+  const umdBundleUrl = `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.umdBundle}`;
+  const cssBundleUrl = tinyFrontendModuleConfig.cssBundle
+    ? `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.cssBundle}`
     : undefined;
 
   try {
-    const smolFrontend = await loadUmdBundle<T>(umdBundleUrl, dependenciesMap);
+    const tinyFrontend = await loadUmdBundle<T>(umdBundleUrl, dependenciesMap);
 
-    const smolFrontendStringToAddToSsrResult = `
+    const tinyFrontendStringToAddToSsrResult = `
 ${cssBundleUrl ? `<link rel="stylesheet" href="${cssBundleUrl}">` : ""}
 <link rel="preload" href="${umdBundleUrl}" as="fetch" crossorigin="anonymous">
 <script>
-window["smolFrontend${name}Config"] = ${JSON.stringify(
-      smolFrontendModuleConfig
+window["tinyFrontend${name}Config"] = ${JSON.stringify(
+      tinyFrontendModuleConfig
     )}
 </script>
 `;
     return {
-      smolFrontend,
-      smolFrontendStringToAddToSsrResult,
+      tinyFrontend,
+      tinyFrontendStringToAddToSsrResult,
     };
   } catch (err) {
     console.error(err);
-    throw new SmolClientLoadBundleError(name);
+    throw new TinyClientLoadBundleError(name);
   }
 };

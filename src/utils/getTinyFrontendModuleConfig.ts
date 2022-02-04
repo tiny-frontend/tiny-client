@@ -1,20 +1,20 @@
-import { SmolClientFetchError } from "../errors";
-import { SmolFrontendModuleConfig } from "../types";
+import { TinyClientFetchError } from "../errors";
+import { TinyFrontendModuleConfig } from "../types";
 
-export const getSmolFrontendModuleConfig = async (
+export const getTinyFrontendModuleConfig = async (
   libraryName: string,
   libraryVersion: string,
   hostname: string
-): Promise<SmolFrontendModuleConfig> => {
+): Promise<TinyFrontendModuleConfig> => {
   let response;
 
   try {
     response = await fetch(
-      `${hostname}/smol/latest/${libraryName}/${libraryVersion}`,
+      `${hostname}/tiny/latest/${libraryName}/${libraryVersion}`,
       { mode: "cors" }
     );
   } catch (err) {
-    throw new SmolClientFetchError(
+    throw new TinyClientFetchError(
       libraryName,
       libraryVersion,
       `with error: ${(err as Record<string, string>)?.message}`
@@ -22,19 +22,19 @@ export const getSmolFrontendModuleConfig = async (
   }
 
   if (response.status >= 400) {
-    throw new SmolClientFetchError(
+    throw new TinyClientFetchError(
       libraryName,
       libraryVersion,
       `with status ${response.status} and body '${await response.text()}'`
     );
   }
 
-  let responseJson: SmolFrontendModuleConfig;
+  let responseJson: TinyFrontendModuleConfig;
 
   try {
     responseJson = await response.json();
   } catch (err) {
-    throw new SmolClientFetchError(
+    throw new TinyClientFetchError(
       libraryName,
       libraryVersion,
       `while getting JSON body`

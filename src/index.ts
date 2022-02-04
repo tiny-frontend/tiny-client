@@ -1,2 +1,2 @@
-export { loadSmolFrontendClient } from "./load.client";
-export { loadSmolFrontendServer } from "./load.server";
+export { loadTinyFrontendClient } from "./load.client";
+export { loadTinyFrontendServer } from "./load.server";
