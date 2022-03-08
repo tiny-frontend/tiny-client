@@ -1,13 +1,14 @@
 import "@ungap/global-this";
 
 import { TinyClientLoadBundleError } from "./errors";
-import { LoadTinyFrontendOptions } from "./types";
+import { LoadTinyFrontendOptions, TinyFrontendSsrConfig } from "./types";
 import { getTinyFrontendModuleConfig } from "./utils/getTinyFrontendModuleConfig";
 import { loadUmdBundle } from "./utils/loadUmdBundle";
 
 export interface TinyFrontendServerResponse<T> {
   tinyFrontend: T;
   tinyFrontendStringToAddToSsrResult: string;
+  tinyFrontendSsrConfig: TinyFrontendSsrConfig;
 }
 
 export const loadTinyFrontendServer = async <T>({
@@ -30,18 +31,25 @@ export const loadTinyFrontendServer = async <T>({
   try {
     const tinyFrontend = await loadUmdBundle<T>(umdBundleUrl, dependenciesMap);
 
+    const moduleConfigScript = `window["tinyFrontend${name}Config"] = ${JSON.stringify(
+      tinyFrontendModuleConfig
+    )}`;
+
     const tinyFrontendStringToAddToSsrResult = `
 ${cssBundleUrl ? `<link rel="stylesheet" href="${cssBundleUrl}">` : ""}
 <link rel="preload" href="${umdBundleUrl}" as="fetch" crossorigin="anonymous">
-<script>
-window["tinyFrontend${name}Config"] = ${JSON.stringify(
-      tinyFrontendModuleConfig
-    )}
-</script>
-`;
+<script>${moduleConfigScript}</script>`;
+
+    const tinyFrontendSsrConfig: TinyFrontendSsrConfig = {
+      cssBundle: cssBundleUrl,
+      jsBundle: umdBundleUrl,
+      moduleConfigScript,
+    };
+
     return {
       tinyFrontend,
       tinyFrontendStringToAddToSsrResult,
+      tinyFrontendSsrConfig,
     };
   } catch (err) {
     console.error(err);
