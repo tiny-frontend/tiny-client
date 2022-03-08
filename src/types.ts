@@ -9,3 +9,9 @@ export interface TinyFrontendModuleConfig {
   umdBundle: string;
   cssBundle?: string;
 }
+
+export interface TinyFrontendSsrConfig {
+  jsBundle: string;
+  moduleConfigScript: string;
+  cssBundle?: string;
+}
