@@ -1,20 +1,48 @@
 import "@ungap/global-this";
 
-const umdBundlesPromiseCacheMap = new Map<string, Promise<unknown>>();
+interface UmdBundleCacheItem {
+  promise: Promise<unknown>;
+  timestamp: number;
+}
+
+const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
+
+export interface LoadUmdBundleOptions {
+  ttlInMs?: number;
+}
 
 export const loadUmdBundle = async <T>(
   bundleUrl: string,
-  dependenciesMap: Record<string, unknown>
+  dependenciesMap: Record<string, unknown>,
+  options: LoadUmdBundleOptions = {}
 ): Promise<T> => {
   if (umdBundlesPromiseCacheMap.has(bundleUrl)) {
-    return (await umdBundlesPromiseCacheMap.get(bundleUrl)) as Promise<T>;
+    const cacheItem = umdBundlesPromiseCacheMap.get(
+      bundleUrl
+    ) as UmdBundleCacheItem;
+    const now = Date.now();
+
+    if (
+      options.ttlInMs == null ||
+      now - cacheItem.timestamp < options.ttlInMs
+    ) {
+      return (await cacheItem.promise) as Promise<T>;
+    }
   }
 
   const umdBundlePromise = loadUmdBundleWithoutCache<T>(
     bundleUrl,
     dependenciesMap
   );
-  umdBundlesPromiseCacheMap.set(bundleUrl, umdBundlePromise);
+  umdBundlesPromiseCacheMap.set(bundleUrl, {
+    promise: umdBundlePromise,
+    timestamp: Date.now(),
+  });
+
+  umdBundlePromise.catch((err) => {
+    umdBundlesPromiseCacheMap.delete(bundleUrl);
+    throw err;
+  });
 
   return await umdBundlePromise;
 };
