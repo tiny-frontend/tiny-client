@@ -8,6 +8,7 @@ export const loadTinyFrontendClient = async <T>({
   contractVersion,
   tinyApiEndpoint,
   dependenciesMap = {},
+  loadUmdBundleOptions = {}
 }: LoadTinyFrontendOptions): Promise<T> => {
   const tinyFrontendModuleConfigFromSsr = (
     window as unknown as Record<string, TinyFrontendModuleConfig | undefined>
@@ -28,10 +29,11 @@ export const loadTinyFrontendClient = async <T>({
   }
 
   try {
-    return await loadUmdBundle(
-      `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.umdBundle}`,
-      dependenciesMap
-    );
+    return await loadUmdBundle({
+      bundleUrl: `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.umdBundle}`,
+      dependenciesMap,
+      loadUmdBundleOptions
+    });
   } catch (err) {
     console.error(err);
     throw new TinyClientLoadBundleError(name);

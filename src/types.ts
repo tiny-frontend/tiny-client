@@ -1,8 +1,11 @@
+import { LoadUmdBundleOptions } from "./utils/loadUmdBundle";
+
 export interface LoadTinyFrontendOptions {
   name: string;
   contractVersion: string;
   tinyApiEndpoint: string;
   dependenciesMap?: Record<string, unknown>;
+  loadUmdBundleOptions?: LoadUmdBundleOptions;
 }
 
 export interface TinyFrontendModuleConfig {

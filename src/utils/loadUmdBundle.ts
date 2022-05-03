@@ -27,12 +27,16 @@ const isCacheItemValid = ({
   timestamp: number;
 }) => !ttlInMs || Date.now() - timestamp < ttlInMs;
 
-export const loadUmdBundle = async <T>(
-  bundleUrl: string,
-  dependenciesMap: Record<string, unknown>,
-  options: LoadUmdBundleOptions = {}
-): Promise<T> => {
-  const { ttlInMs, backoff } = options;
+export const loadUmdBundle = async <T>({
+  bundleUrl,
+  dependenciesMap,
+  loadUmdBundleOptions = {}
+}: {
+  bundleUrl: string;
+  dependenciesMap: Record<string, unknown>;
+  loadUmdBundleOptions: LoadUmdBundleOptions;
+}): Promise<T> => {
+  const { ttlInMs, backoff } = loadUmdBundleOptions;
 
   if (umdBundlesPromiseCacheMap.has(bundleUrl)) {
     const cacheItem = umdBundlesPromiseCacheMap.get(
