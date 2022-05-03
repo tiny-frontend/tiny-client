@@ -1,5 +1,12 @@
 import "@ungap/global-this";
 
+import { retryFetch } from "./retryFetch";
+
+export interface LoadUmdBundleBackoff {
+  maxRetries: number;
+  delay: number;
+}
+
 interface UmdBundleCacheItem {
   promise: Promise<unknown>;
   timestamp: number;
@@ -9,37 +16,46 @@ const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
 
 export interface LoadUmdBundleOptions {
   ttlInMs?: number;
+  backoff?: LoadUmdBundleBackoff;
 }
+
+const isCacheItemValid = ({
+  ttlInMs,
+  timestamp
+}: {
+  ttlInMs?: number;
+  timestamp: number;
+}) => !ttlInMs || Date.now() - timestamp < ttlInMs;
 
 export const loadUmdBundle = async <T>(
   bundleUrl: string,
   dependenciesMap: Record<string, unknown>,
   options: LoadUmdBundleOptions = {}
 ): Promise<T> => {
+  const { ttlInMs, backoff } = options;
+
   if (umdBundlesPromiseCacheMap.has(bundleUrl)) {
     const cacheItem = umdBundlesPromiseCacheMap.get(
       bundleUrl
     ) as UmdBundleCacheItem;
-    const now = Date.now();
 
-    if (
-      options.ttlInMs == null ||
-      now - cacheItem.timestamp < options.ttlInMs
-    ) {
+    if (isCacheItemValid({ ttlInMs, timestamp: cacheItem.timestamp })) {
       return (await cacheItem.promise) as Promise<T>;
     }
   }
 
-  const umdBundlePromise = loadUmdBundleWithoutCache<T>(
+  const umdBundlePromise = loadUmdBundleWithoutCache<T>({
     bundleUrl,
-    dependenciesMap
-  );
-  umdBundlesPromiseCacheMap.set(bundleUrl, {
-    promise: umdBundlePromise,
-    timestamp: Date.now(),
+    dependenciesMap,
+    backoff
   });
 
-  umdBundlePromise.catch((err) => {
+  umdBundlesPromiseCacheMap.set(bundleUrl, {
+    promise: umdBundlePromise,
+    timestamp: Date.now()
+  });
+
+  umdBundlePromise.catch(err => {
     umdBundlesPromiseCacheMap.delete(bundleUrl);
     throw err;
   });
@@ -47,13 +63,20 @@ export const loadUmdBundle = async <T>(
   return await umdBundlePromise;
 };
 
-export const loadUmdBundleWithoutCache = async <T>(
-  bundleUrl: string,
-  dependenciesMap: Record<string, unknown>
-): Promise<T> => {
-  const umdBundleSourceResponse = await fetch(bundleUrl);
+export const loadUmdBundleWithoutCache = async <T>({
+  bundleUrl,
+  dependenciesMap,
+  backoff
+}: {
+  bundleUrl: string;
+  dependenciesMap: Record<string, unknown>;
+  backoff?: LoadUmdBundleBackoff;
+}): Promise<T> => {
+  const umdBundleSourceResponse = backoff
+    ? await retryFetch({ loader: () => fetch(bundleUrl), options: backoff })
+    : await fetch(bundleUrl);
 
-  if (umdBundleSourceResponse.status >= 400) {
+  if (!umdBundleSourceResponse || umdBundleSourceResponse.status >= 400) {
     throw new Error(`Failed to fetch umd bundle at URL ${bundleUrl}`);
   }
 
@@ -74,7 +97,7 @@ const evalUmdBundle = <T>(
     moduleFactory: (...args: unknown[]) => T
   ) => {
     module = moduleFactory(
-      ...dependenciesName.map((dependencyName) => {
+      ...dependenciesName.map(dependencyName => {
         const dependency = dependenciesMap[dependencyName];
         if (!dependency) {
           console.error(
