@@ -2,7 +2,7 @@ import "@ungap/global-this";
 
 import { retryFetch } from "./retryFetch";
 
-export interface LoadBundleBackoff {
+export interface RetryOptions {
   maxRetries: number;
   delay: number;
 }
@@ -16,7 +16,7 @@ const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
 
 export interface LoadBundleOptions {
   ttlInMs?: number;
-  backoff?: LoadBundleBackoff;
+  backoff?: RetryOptions;
 }
 
 const isCacheItemValid = ({
@@ -74,7 +74,7 @@ export const loadUmdBundleWithoutCache = async <T>({
 }: {
   bundleUrl: string;
   dependenciesMap: Record<string, unknown>;
-  backoff?: LoadBundleBackoff;
+  backoff?: RetryOptions;
 }): Promise<T> => {
   const umdBundleSourceResponse = backoff
     ? await retryFetch({ loader: () => fetch(bundleUrl), options: backoff })

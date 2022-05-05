@@ -1,14 +1,14 @@
-import { LoadBundleBackoff } from "./loadUmdBundle";
+import { RetryOptions } from "./loadUmdBundle";
 
 const wait = (delay: number) =>
-  new Promise((resolve) => setTimeout(resolve, delay));
+  new Promise(resolve => setTimeout(resolve, delay));
 
 export const retryFetch = async <T>({
   loader,
-  options,
+  options
 }: {
   loader: () => Promise<T>;
-  options: LoadBundleBackoff;
+  options: RetryOptions;
 }): Promise<T | undefined> => {
   const { maxRetries, delay } = options;
   const onError = (error: Error) => {
@@ -21,9 +21,9 @@ export const retryFetch = async <T>({
       retryFetch({
         options: {
           delay: Math.pow(delay, 2),
-          maxRetries: triesLeft,
+          maxRetries: triesLeft
         },
-        loader,
+        loader
       })
     );
   };
