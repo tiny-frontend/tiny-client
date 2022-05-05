@@ -20,12 +20,12 @@ export interface LoadBundleOptions {
 }
 
 const isCacheItemValid = ({
-  ttlInMs,
   timestamp,
+  ttlInMs,
 }: {
-  ttlInMs?: number;
   timestamp: number;
-}) => !ttlInMs || Date.now() - timestamp < ttlInMs;
+  ttlInMs?: number;
+}) => ttlInMs == null || Date.now() - timestamp < ttlInMs;
 
 export const loadUmdBundle = async <T>({
   bundleUrl,
