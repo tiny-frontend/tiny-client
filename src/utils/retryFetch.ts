@@ -9,7 +9,7 @@ export const retryFetch = async <T>({
 }: {
   loader: () => Promise<T>;
   options: RetryOptions;
-}): Promise<T | undefined> => {
+}): Promise<T> => {
   const { maxRetries, delay } = options;
   const onError = (error: Error) => {
     const triesLeft = maxRetries - 1;

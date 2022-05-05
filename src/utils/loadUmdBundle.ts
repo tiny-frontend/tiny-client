@@ -80,7 +80,7 @@ export const loadUmdBundleWithoutCache = async <T>({
     ? await retryFetch({ loader: () => fetch(bundleUrl), options: backoff })
     : await fetch(bundleUrl);
 
-  if (!umdBundleSourceResponse || umdBundleSourceResponse.status >= 400) {
+  if (umdBundleSourceResponse.status >= 400) {
     throw new Error(`Failed to fetch umd bundle at URL ${bundleUrl}`);
   }
 
