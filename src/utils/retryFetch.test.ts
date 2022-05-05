@@ -1,26 +1,54 @@
-import { retryFetch } from "./retryFetch";
+import * as retry from "./retryFetch";
+
+const { retryFetch } = retry;
 
 describe("[retryFetch]", () => {
   describe("when there are retries configured", () => {
-    it("should exaust retries", async () => {
+    it("should return if no error occured", async () => {
       const maxRetries = 3;
-      const loader = jest.fn(() => Promise.reject("error"));
+      const result = () => "result";
 
-      try {
-        retryFetch({ loader, options: { delay: 100, maxRetries } });
-      } catch (err) {
-        expect(loader).toBeCalledTimes(maxRetries);
-      }
+      const loader = jest.fn(() => Promise.resolve(result));
+
+      await expect(
+        retryFetch({ loader, options: { delay: 100, maxRetries } })
+      ).resolves.toBe(result);
     });
-
-    it("throws an error after exausting the retries", async () => {
+    it("should exaust retries and throw an error after exausting them", async () => {
       const maxRetries = 3;
-      const errorMessage = "Oh no, there was an error!";
-      const loader = jest.fn(() => Promise.reject(errorMessage));
+      const error = new Error("Oh no, there was an error!");
 
-      retryFetch({ loader, options: { delay: 100, maxRetries } });
+      const loader = jest.fn(() => Promise.reject(error));
 
-      expect(loader).rejects.toThrow(errorMessage);
+      await expect(
+        retryFetch({ loader, options: { delay: 100, maxRetries } })
+      ).rejects.toBe(error);
+
+      expect(loader).toBeCalledTimes(maxRetries);
+    });
+    it("should increase the delay as retries fail", async () => {
+      const maxRetries = 3;
+      const error = new Error("Oh no, there was an error!");
+
+      const loader = jest.fn(() => Promise.reject(error));
+      const spy = jest.spyOn(retry, "retryFetch");
+
+      await expect(
+        retryFetch({ loader, options: { delay: 100, maxRetries } })
+      ).rejects.toBe(error);
+
+      expect(spy).toBeCalledWith(
+        expect.objectContaining({
+          loader,
+          options: { delay: 200, maxRetries: 2 }
+        })
+      );
+      expect(spy).toBeCalledWith(
+        expect.objectContaining({
+          loader,
+          options: { delay: 400, maxRetries: 1 }
+        })
+      );
     });
   });
 });
