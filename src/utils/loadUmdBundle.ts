@@ -2,7 +2,7 @@ import "@ungap/global-this";
 
 import { retryFetch } from "./retryFetch";
 
-export interface LoadUmdBundleBackoff {
+export interface LoadBundleBackoff {
   maxRetries: number;
   delay: number;
 }
@@ -14,14 +14,14 @@ interface UmdBundleCacheItem {
 
 const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
 
-export interface LoadUmdBundleOptions {
+export interface LoadBundleOptions {
   ttlInMs?: number;
-  backoff?: LoadUmdBundleBackoff;
+  backoff?: LoadBundleBackoff;
 }
 
 const isCacheItemValid = ({
   ttlInMs,
-  timestamp
+  timestamp,
 }: {
   ttlInMs?: number;
   timestamp: number;
@@ -30,13 +30,13 @@ const isCacheItemValid = ({
 export const loadUmdBundle = async <T>({
   bundleUrl,
   dependenciesMap,
-  loadUmdBundleOptions = {}
+  loadBundleOptions = {},
 }: {
   bundleUrl: string;
   dependenciesMap: Record<string, unknown>;
-  loadUmdBundleOptions: LoadUmdBundleOptions;
+  loadBundleOptions: LoadBundleOptions;
 }): Promise<T> => {
-  const { ttlInMs, backoff } = loadUmdBundleOptions;
+  const { ttlInMs, backoff } = loadBundleOptions;
 
   if (umdBundlesPromiseCacheMap.has(bundleUrl)) {
     const cacheItem = umdBundlesPromiseCacheMap.get(
@@ -51,15 +51,15 @@ export const loadUmdBundle = async <T>({
   const umdBundlePromise = loadUmdBundleWithoutCache<T>({
     bundleUrl,
     dependenciesMap,
-    backoff
+    backoff,
   });
 
   umdBundlesPromiseCacheMap.set(bundleUrl, {
     promise: umdBundlePromise,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 
-  umdBundlePromise.catch(err => {
+  umdBundlePromise.catch((err) => {
     umdBundlesPromiseCacheMap.delete(bundleUrl);
     throw err;
   });
@@ -70,11 +70,11 @@ export const loadUmdBundle = async <T>({
 export const loadUmdBundleWithoutCache = async <T>({
   bundleUrl,
   dependenciesMap,
-  backoff
+  backoff,
 }: {
   bundleUrl: string;
   dependenciesMap: Record<string, unknown>;
-  backoff?: LoadUmdBundleBackoff;
+  backoff?: LoadBundleBackoff;
 }): Promise<T> => {
   const umdBundleSourceResponse = backoff
     ? await retryFetch({ loader: () => fetch(bundleUrl), options: backoff })
@@ -101,7 +101,7 @@ const evalUmdBundle = <T>(
     moduleFactory: (...args: unknown[]) => T
   ) => {
     module = moduleFactory(
-      ...dependenciesName.map(dependencyName => {
+      ...dependenciesName.map((dependencyName) => {
         const dependency = dependenciesMap[dependencyName];
         if (!dependency) {
           console.error(
