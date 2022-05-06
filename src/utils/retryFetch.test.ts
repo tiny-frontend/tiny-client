@@ -27,26 +27,32 @@ describe("[retryFetch]", () => {
       expect(loader).toBeCalledTimes(maxRetries);
     });
     it("should increase the delay as retries fail", async () => {
-      const maxRetries = 3;
+      const maxRetries = 4;
       const error = new Error("Oh no, there was an error!");
 
       const loader = jest.fn(() => Promise.reject(error));
       const spy = jest.spyOn(retry, "retryFetch");
 
       await expect(
-        retryFetch({ loader, options: { delay: 100, maxRetries } })
+        retryFetch({ loader, options: { delay: 10, maxRetries } })
       ).rejects.toBe(error);
 
       expect(spy).toBeCalledWith(
         expect.objectContaining({
           loader,
-          options: { delay: 200, maxRetries: 2 }
+          options: { delay: 20, maxRetries: 3 }
         })
       );
       expect(spy).toBeCalledWith(
         expect.objectContaining({
           loader,
-          options: { delay: 400, maxRetries: 1 }
+          options: { delay: 40, maxRetries: 2 }
+        })
+      );
+      expect(spy).toBeCalledWith(
+        expect.objectContaining({
+          loader,
+          options: { delay: 80, maxRetries: 1 }
         })
       );
     });

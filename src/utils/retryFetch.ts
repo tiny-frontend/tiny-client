@@ -20,7 +20,7 @@ export const retryFetch = async <T>({
     return wait(delay).then(() =>
       retryFetch({
         options: {
-          delay: delay * (maxRetries - triesLeft) * 2,
+          delay: delay * 2,
           maxRetries: triesLeft,
         },
         loader,
