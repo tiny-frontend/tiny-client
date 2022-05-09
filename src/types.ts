@@ -1,11 +1,16 @@
-import { LoadBundleOptions } from "./utils/loadUmdBundle";
+import { RetryPolicy } from "./utils/retry";
+
+export interface LoadingOptions {
+  bundleCacheTtlInMs?: number;
+  retryPolicy?: RetryPolicy;
+}
 
 export interface LoadTinyFrontendOptions {
   name: string;
   contractVersion: string;
   tinyApiEndpoint: string;
   dependenciesMap?: Record<string, unknown>;
-  loadBundleOptions?: LoadBundleOptions;
+  loadingOptions?: LoadingOptions;
 }
 
 export interface TinyFrontendModuleConfig {

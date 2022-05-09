@@ -9,11 +9,6 @@ interface UmdBundleCacheItem {
 
 const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
 
-export interface LoadBundleOptions {
-  ttlInMs?: number;
-  retryPolicy?: RetryPolicy;
-}
-
 const isCacheItemValid = ({
   timestamp,
   ttlInMs,
@@ -25,7 +20,10 @@ const isCacheItemValid = ({
 interface LoadUmdBundleProps {
   bundleUrl: string;
   dependenciesMap: Record<string, unknown>;
-  loadBundleOptions: LoadBundleOptions;
+  loadBundleOptions: {
+    ttlInMs?: number;
+    retryPolicy?: RetryPolicy;
+  };
 }
 
 export const loadUmdBundle = async <T>({
