@@ -1,6 +1,6 @@
 import { TinyClientFetchError } from "../errors";
 import { TinyFrontendModuleConfig } from "../types";
-import { retryFetch, RetryPolicy } from "./retryFetch";
+import { retry, RetryPolicy } from "./retry";
 
 interface GetTinyFrontendModuleConfigPropsWithRetryPolicy
   extends GetTinyFrontendModuleConfigProps {
@@ -22,15 +22,15 @@ export const getTinyFrontendModuleConfig = async ({
     return getTinyFrontendModuleConfigInFlightPromise;
   }
 
-  getTinyFrontendModuleConfigInFlightPromise = retryFetch({
-    loader: () =>
+  getTinyFrontendModuleConfigInFlightPromise = retry(
+    () =>
       getTinyFrontendModuleConfigWithoutRetries({
         libraryName,
         libraryVersion,
         hostname,
       }),
-    retryPolicy: retryPolicy,
-  }).finally(() => (getTinyFrontendModuleConfigInFlightPromise = null));
+    retryPolicy
+  ).finally(() => (getTinyFrontendModuleConfigInFlightPromise = null));
 
   return getTinyFrontendModuleConfigInFlightPromise;
 };

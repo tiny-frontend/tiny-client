@@ -1,6 +1,6 @@
 import "@ungap/global-this";
 
-import { retryFetch, RetryPolicy } from "./retryFetch";
+import { retry, RetryPolicy } from "./retry";
 
 interface UmdBundleCacheItem {
   promise: Promise<unknown>;
@@ -51,14 +51,14 @@ export const loadUmdBundle = async <T>({
     }
   }
 
-  const umdBundlePromise = retryFetch({
-    loader: () =>
+  const umdBundlePromise = retry(
+    () =>
       loadUmdBundleWithoutCache<T>({
         bundleUrl,
         dependenciesMap,
       }),
-    retryPolicy,
-  });
+    retryPolicy
+  );
 
   umdBundlesPromiseCacheMap.set(bundleUrl, {
     promise: umdBundlePromise,

@@ -6,13 +6,10 @@ export interface RetryPolicy {
 const wait = (delay: number) =>
   new Promise((resolve) => setTimeout(resolve, delay));
 
-export const retryFetch = async <T>({
-  loader,
-  retryPolicy,
-}: {
-  loader: () => Promise<T>;
-  retryPolicy: RetryPolicy;
-}): Promise<T> => {
+export const retry = async <T>(
+  fnToRetry: () => Promise<T>,
+  retryPolicy: RetryPolicy
+): Promise<T> => {
   const { maxRetries, delay } = retryPolicy;
   const onError = (error: Error) => {
     if (maxRetries <= 0) {
@@ -20,17 +17,14 @@ export const retryFetch = async <T>({
     }
 
     return wait(delay).then(() =>
-      retryFetch({
-        retryPolicy: {
-          delay: delay * 2,
-          maxRetries: maxRetries - 1,
-        },
-        loader,
+      retry(fnToRetry, {
+        delay: delay * 2,
+        maxRetries: maxRetries - 1,
       })
     );
   };
   try {
-    return await loader();
+    return await fnToRetry();
   } catch (error) {
     return onError(error as Error);
   }
