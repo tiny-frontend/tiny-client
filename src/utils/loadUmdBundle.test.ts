@@ -31,7 +31,7 @@ define([], () => ({ mockExport: "Hello World" }))
     });
   });
 
-  it("should provide dependencies", async () => {
+  it("should provide dependencies to the UMD bundle", async () => {
     server.use(
       rest.get("https://mock.hostname/api/mockBundle.js", (_, res, ctx) =>
         res(
