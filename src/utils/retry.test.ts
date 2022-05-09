@@ -2,7 +2,7 @@ import * as retryModule from "./retry";
 
 const { retry } = retryModule;
 
-describe("[retryFetch]", () => {
+describe("[retry]", () => {
   afterEach(() => jest.clearAllMocks());
 
   describe("when there are retries configured", () => {
