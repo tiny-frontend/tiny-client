@@ -107,4 +107,36 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
       });
     }
   );
+
+  it("should retry fetching when passed a retry policy", async () => {
+    let count = 0;
+    server.use(
+      rest.get("https://mock.hostname/api/mockBundle.js", (_, res, ctx) => {
+        if (count === 0) {
+          count++;
+          return res(ctx.status(400));
+        }
+        return res(
+          ctx.status(200),
+          ctx.text(`
+define([], () => ({ mockExport: "Hello World" }))
+`)
+        );
+      })
+    );
+
+    const umdBundle = await loadUmdBundle<MockBundle>({
+      bundleUrl: "https://mock.hostname/api/mockBundle.js",
+      dependenciesMap: {},
+      bundleCacheTtlInMs: 0,
+      retryPolicy: {
+        maxRetries: 1,
+        delay: 10,
+      },
+    });
+
+    expect(umdBundle).toEqual({
+      mockExport: "Hello World",
+    });
+  });
 });
