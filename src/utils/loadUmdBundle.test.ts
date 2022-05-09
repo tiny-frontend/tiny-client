@@ -31,6 +31,32 @@ define([], () => ({ mockExport: "Hello World" }))
     });
   });
 
+  it("should provide dependencies", async () => {
+    server.use(
+      rest.get("https://mock.hostname/api/mockBundle.js", (_, res, ctx) =>
+        res(
+          ctx.status(200),
+          ctx.text(`
+define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`\${myMockDep} - \${myMockDep2}\` }))
+`)
+        )
+      )
+    );
+
+    const umdBundle = await loadUmdBundle<MockBundle>({
+      bundleUrl: "https://mock.hostname/api/mockBundle.js",
+      dependenciesMap: {
+        myMockDep: "MOCK_DEP",
+        myMockDep2: "MOCK_DEP_2",
+      },
+      bundleCacheTtlInMs: 0,
+    });
+
+    expect(umdBundle).toEqual({
+      mockExport: "MOCK_DEP - MOCK_DEP_2",
+    });
+  });
+
   it.each`
     status
     ${400}
