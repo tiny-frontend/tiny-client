@@ -33,7 +33,13 @@ export const loadUmdBundle = async <T>({
   dependenciesMap,
   loadBundleOptions = {},
 }: LoadUmdBundleProps): Promise<T> => {
-  const { ttlInMs, retryPolicy } = loadBundleOptions;
+  const {
+    ttlInMs,
+    retryPolicy = {
+      maxRetries: 0,
+      delay: 0,
+    },
+  } = loadBundleOptions;
 
   if (umdBundlesPromiseCacheMap.has(bundleUrl)) {
     const cacheItem = umdBundlesPromiseCacheMap.get(
@@ -45,9 +51,12 @@ export const loadUmdBundle = async <T>({
     }
   }
 
-  const umdBundlePromise = loadUmdBundleWithoutCache<T>({
-    bundleUrl,
-    dependenciesMap,
+  const umdBundlePromise = retryFetch({
+    loader: () =>
+      loadUmdBundleWithoutCache<T>({
+        bundleUrl,
+        dependenciesMap,
+      }),
     retryPolicy,
   });
 
@@ -67,18 +76,11 @@ export const loadUmdBundle = async <T>({
 export const loadUmdBundleWithoutCache = async <T>({
   bundleUrl,
   dependenciesMap,
-  retryPolicy,
 }: {
   bundleUrl: string;
   dependenciesMap: Record<string, unknown>;
-  retryPolicy?: RetryPolicy;
 }): Promise<T> => {
-  const umdBundleSourceResponse = retryPolicy
-    ? await retryFetch({
-        loader: () => fetch(bundleUrl),
-        retryPolicy,
-      })
-    : await fetch(bundleUrl);
+  const umdBundleSourceResponse = await fetch(bundleUrl);
 
   if (umdBundleSourceResponse.status >= 400) {
     throw new Error(`Failed to fetch umd bundle at URL ${bundleUrl}`);
