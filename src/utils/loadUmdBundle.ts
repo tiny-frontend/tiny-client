@@ -1,11 +1,6 @@
 import "@ungap/global-this";
 
-import { retryFetch } from "./retryFetch";
-
-export interface RetryOptions {
-  maxRetries: number;
-  delay: number;
-}
+import { retryFetch, RetryPolicy } from "./retryFetch";
 
 interface UmdBundleCacheItem {
   promise: Promise<unknown>;
@@ -16,7 +11,7 @@ const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
 
 export interface LoadBundleOptions {
   ttlInMs?: number;
-  backoff?: RetryOptions;
+  retryPolicy?: RetryPolicy;
 }
 
 const isCacheItemValid = ({
@@ -27,16 +22,18 @@ const isCacheItemValid = ({
   ttlInMs?: number;
 }) => ttlInMs == null || Date.now() - timestamp < ttlInMs;
 
+interface LoadUmdBundleProps {
+  bundleUrl: string;
+  dependenciesMap: Record<string, unknown>;
+  loadBundleOptions: LoadBundleOptions;
+}
+
 export const loadUmdBundle = async <T>({
   bundleUrl,
   dependenciesMap,
   loadBundleOptions = {},
-}: {
-  bundleUrl: string;
-  dependenciesMap: Record<string, unknown>;
-  loadBundleOptions: LoadBundleOptions;
-}): Promise<T> => {
-  const { ttlInMs, backoff } = loadBundleOptions;
+}: LoadUmdBundleProps): Promise<T> => {
+  const { ttlInMs, retryPolicy } = loadBundleOptions;
 
   if (umdBundlesPromiseCacheMap.has(bundleUrl)) {
     const cacheItem = umdBundlesPromiseCacheMap.get(
@@ -51,7 +48,7 @@ export const loadUmdBundle = async <T>({
   const umdBundlePromise = loadUmdBundleWithoutCache<T>({
     bundleUrl,
     dependenciesMap,
-    backoff,
+    retryPolicy,
   });
 
   umdBundlesPromiseCacheMap.set(bundleUrl, {
@@ -70,14 +67,17 @@ export const loadUmdBundle = async <T>({
 export const loadUmdBundleWithoutCache = async <T>({
   bundleUrl,
   dependenciesMap,
-  backoff,
+  retryPolicy,
 }: {
   bundleUrl: string;
   dependenciesMap: Record<string, unknown>;
-  backoff?: RetryOptions;
+  retryPolicy?: RetryPolicy;
 }): Promise<T> => {
-  const umdBundleSourceResponse = backoff
-    ? await retryFetch({ loader: () => fetch(bundleUrl), options: backoff })
+  const umdBundleSourceResponse = retryPolicy
+    ? await retryFetch({
+        loader: () => fetch(bundleUrl),
+        retryPolicy,
+      })
     : await fetch(bundleUrl);
 
   if (umdBundleSourceResponse.status >= 400) {

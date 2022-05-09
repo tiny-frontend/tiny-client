@@ -13,7 +13,7 @@ describe("[retryFetch]", () => {
       const loader = jest.fn(() => Promise.resolve(result));
 
       await expect(
-        retryFetch({ loader, options: { delay: 100, maxRetries } })
+        retryFetch({ loader, retryPolicy: { delay: 100, maxRetries } })
       ).resolves.toBe(result);
     });
     it("should exhaust retries and throw an error after exhausting them", async () => {
@@ -23,7 +23,7 @@ describe("[retryFetch]", () => {
       const loader = jest.fn(() => Promise.reject(error));
 
       await expect(
-        retryFetch({ loader, options: { delay: 100, maxRetries } })
+        retryFetch({ loader, retryPolicy: { delay: 100, maxRetries } })
       ).rejects.toBe(error);
 
       expect(loader).toBeCalledTimes(4);
@@ -36,7 +36,7 @@ describe("[retryFetch]", () => {
       const spy = jest.spyOn(retry, "retryFetch");
 
       await expect(
-        retryFetch({ loader, options: { delay: 10, maxRetries } })
+        retryFetch({ loader, retryPolicy: { delay: 10, maxRetries } })
       ).rejects.toBe(error);
 
       expect(spy).toBeCalledWith(
@@ -68,7 +68,7 @@ describe("[retryFetch]", () => {
       const spy = jest.spyOn(retry, "retryFetch");
 
       await expect(
-        retryFetch({ loader, options: { delay: 10, maxRetries: 0 } })
+        retryFetch({ loader, retryPolicy: { delay: 10, maxRetries: 0 } })
       ).rejects.toBeDefined();
 
       expect(spy).toBeCalledTimes(0);

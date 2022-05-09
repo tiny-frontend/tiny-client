@@ -1,16 +1,19 @@
-import { RetryOptions } from "./loadUmdBundle";
+export interface RetryPolicy {
+  maxRetries: number;
+  delay: number;
+}
 
 const wait = (delay: number) =>
   new Promise((resolve) => setTimeout(resolve, delay));
 
 export const retryFetch = async <T>({
   loader,
-  options,
+  retryPolicy,
 }: {
   loader: () => Promise<T>;
-  options: RetryOptions;
+  retryPolicy: RetryPolicy;
 }): Promise<T> => {
-  const { maxRetries, delay } = options;
+  const { maxRetries, delay } = retryPolicy;
   const onError = (error: Error) => {
     if (maxRetries <= 0) {
       throw error;
@@ -18,7 +21,7 @@ export const retryFetch = async <T>({
 
     return wait(delay).then(() =>
       retryFetch({
-        options: {
+        retryPolicy: {
           delay: delay * 2,
           maxRetries: maxRetries - 1,
         },
