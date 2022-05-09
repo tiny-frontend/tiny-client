@@ -8,6 +8,8 @@ interface GetTinyFrontendModuleConfigPropsWithRetryPolicy
   retryPolicy?: RetryOptions;
 }
 
+let getTinyFrontendModuleConfigInFlightPromise: Promise<TinyFrontendModuleConfig> | null;
+
 export const getTinyFrontendModuleConfig = async ({
   libraryName,
   libraryVersion,
@@ -16,8 +18,12 @@ export const getTinyFrontendModuleConfig = async ({
     maxRetries: 0,
     delay: 0,
   },
-}: GetTinyFrontendModuleConfigPropsWithRetryPolicy): Promise<TinyFrontendModuleConfig> =>
-  retryFetch({
+}: GetTinyFrontendModuleConfigPropsWithRetryPolicy): Promise<TinyFrontendModuleConfig> => {
+  if (getTinyFrontendModuleConfigInFlightPromise) {
+    return getTinyFrontendModuleConfigInFlightPromise;
+  }
+
+  getTinyFrontendModuleConfigInFlightPromise = retryFetch({
     loader: () =>
       getTinyFrontendModuleConfigWithoutRetries({
         libraryName,
@@ -25,7 +31,10 @@ export const getTinyFrontendModuleConfig = async ({
         hostname,
       }),
     options: retryPolicy,
-  });
+  }).finally(() => (getTinyFrontendModuleConfigInFlightPromise = null));
+
+  return getTinyFrontendModuleConfigInFlightPromise;
+};
 
 interface GetTinyFrontendModuleConfigProps {
   libraryName: string;
