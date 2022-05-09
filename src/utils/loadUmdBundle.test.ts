@@ -265,5 +265,65 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
         });
       });
     });
+
+    describe("when loading the bundle fails", () => {
+      describe("when called in parallel", () => {
+        it("should call the server only once and fail for all", async () => {
+          let timesServerIsCalled = 0;
+
+          server.use(
+            rest.get(
+              "https://mock.hostname/api/mockBundle.js",
+              (_, res, ctx) => {
+                timesServerIsCalled++;
+                return res(ctx.status(400));
+              }
+            )
+          );
+
+          const loadUmdBundleOptions = {
+            bundleUrl: "https://mock.hostname/api/mockBundle.js",
+            dependenciesMap: {},
+          };
+
+          const promise1 = loadUmdBundle<MockBundle>(loadUmdBundleOptions);
+          const promise2 = loadUmdBundle<MockBundle>(loadUmdBundleOptions);
+
+          await expect(promise1).rejects.toBeDefined();
+          await expect(promise2).rejects.toBeDefined();
+
+          expect(timesServerIsCalled).toEqual(1);
+        });
+      });
+
+      describe("when called in sequence", () => {
+        it("should not cache results and call the server again the second time", async () => {
+          let timesServerIsCalled = 0;
+
+          server.use(
+            rest.get(
+              "https://mock.hostname/api/mockBundle.js",
+              (_, res, ctx) => {
+                timesServerIsCalled++;
+                return res(ctx.status(400));
+              }
+            )
+          );
+
+          const loadUmdBundleOptions = {
+            bundleUrl: "https://mock.hostname/api/mockBundle.js",
+            dependenciesMap: {},
+          };
+          await expect(
+            loadUmdBundle<MockBundle>(loadUmdBundleOptions)
+          ).rejects.toBeDefined();
+          await expect(
+            loadUmdBundle<MockBundle>(loadUmdBundleOptions)
+          ).rejects.toBeDefined();
+
+          expect(timesServerIsCalled).toEqual(2);
+        });
+      });
+    });
   });
 });
