@@ -12,8 +12,7 @@ export const retryFetch = async <T>({
 }): Promise<T> => {
   const { maxRetries, delay } = options;
   const onError = (error: Error) => {
-    const triesLeft = maxRetries - 1;
-    if (!triesLeft) {
+    if (maxRetries <= 0) {
       throw error;
     }
 
@@ -21,7 +20,7 @@ export const retryFetch = async <T>({
       retryFetch({
         options: {
           delay: delay * 2,
-          maxRetries: triesLeft,
+          maxRetries: maxRetries - 1,
         },
         loader,
       })

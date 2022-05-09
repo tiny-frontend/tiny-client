@@ -3,6 +3,8 @@ import * as retry from "./retryFetch";
 const { retryFetch } = retry;
 
 describe("[retryFetch]", () => {
+  afterEach(() => jest.clearAllMocks());
+
   describe("when there are retries configured", () => {
     it("should return if no error occurred", async () => {
       const maxRetries = 3;
@@ -24,7 +26,7 @@ describe("[retryFetch]", () => {
         retryFetch({ loader, options: { delay: 100, maxRetries } })
       ).rejects.toBe(error);
 
-      expect(loader).toBeCalledTimes(maxRetries);
+      expect(loader).toBeCalledTimes(4);
     });
     it("should increase the delay as retries fail", async () => {
       const maxRetries = 4;
@@ -55,6 +57,21 @@ describe("[retryFetch]", () => {
           options: { delay: 80, maxRetries: 1 },
         })
       );
+    });
+  });
+
+  describe("when retries are 0", () => {
+    it("should not retry", async () => {
+      const loader = jest.fn(() =>
+        Promise.reject(new Error("Something went wrong"))
+      );
+      const spy = jest.spyOn(retry, "retryFetch");
+
+      await expect(
+        retryFetch({ loader, options: { delay: 10, maxRetries: 0 } })
+      ).rejects.toBeDefined();
+
+      expect(spy).toBeCalledTimes(0);
     });
   });
 });

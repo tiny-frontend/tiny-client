@@ -107,7 +107,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
       libraryVersion: "MOCK_LIB_VERSION",
       hostname: "https://mock.hostname/api",
       retryPolicy: {
-        maxRetries: 2,
+        maxRetries: 1,
         delay: 10,
       },
     });
