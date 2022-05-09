@@ -4,7 +4,7 @@ const { retryFetch } = retry;
 
 describe("[retryFetch]", () => {
   describe("when there are retries configured", () => {
-    it("should return if no error occured", async () => {
+    it("should return if no error occurred", async () => {
       const maxRetries = 3;
       const result = () => "result";
 
@@ -14,7 +14,7 @@ describe("[retryFetch]", () => {
         retryFetch({ loader, options: { delay: 100, maxRetries } })
       ).resolves.toBe(result);
     });
-    it("should exaust retries and throw an error after exausting them", async () => {
+    it("should exhaust retries and throw an error after exhausting them", async () => {
       const maxRetries = 3;
       const error = new Error("Oh no, there was an error!");
 
@@ -40,19 +40,19 @@ describe("[retryFetch]", () => {
       expect(spy).toBeCalledWith(
         expect.objectContaining({
           loader,
-          options: { delay: 20, maxRetries: 3 }
+          options: { delay: 20, maxRetries: 3 },
         })
       );
       expect(spy).toBeCalledWith(
         expect.objectContaining({
           loader,
-          options: { delay: 40, maxRetries: 2 }
+          options: { delay: 40, maxRetries: 2 },
         })
       );
       expect(spy).toBeCalledWith(
         expect.objectContaining({
           loader,
-          options: { delay: 80, maxRetries: 1 }
+          options: { delay: 80, maxRetries: 1 },
         })
       );
     });
