@@ -18,11 +18,11 @@ export const loadTinyFrontendServer = async <T>({
   dependenciesMap = {},
   loadBundleOptions = {},
 }: LoadTinyFrontendOptions): Promise<TinyFrontendServerResponse<T>> => {
-  const tinyFrontendModuleConfig = await getTinyFrontendModuleConfig(
-    name,
-    contractVersion,
-    tinyApiEndpoint
-  );
+  const tinyFrontendModuleConfig = await getTinyFrontendModuleConfig({
+    libraryName: name,
+    libraryVersion: contractVersion,
+    hostname: tinyApiEndpoint,
+  });
 
   const umdBundleUrl = `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.umdBundle}`;
   const cssBundleUrl = tinyFrontendModuleConfig.cssBundle

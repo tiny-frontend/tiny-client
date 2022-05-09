@@ -1,11 +1,17 @@
 import { TinyClientFetchError } from "../errors";
 import { TinyFrontendModuleConfig } from "../types";
 
-export const getTinyFrontendModuleConfig = async (
-  libraryName: string,
-  libraryVersion: string,
-  hostname: string
-): Promise<TinyFrontendModuleConfig> => {
+interface GetTinyFrontendModuleConfigProps {
+  libraryName: string;
+  libraryVersion: string;
+  hostname: string;
+}
+
+export const getTinyFrontendModuleConfig = async ({
+  libraryName,
+  libraryVersion,
+  hostname,
+}: GetTinyFrontendModuleConfigProps): Promise<TinyFrontendModuleConfig> => {
   let response;
 
   try {

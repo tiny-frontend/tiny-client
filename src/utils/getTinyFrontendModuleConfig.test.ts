@@ -20,11 +20,11 @@ describe("[getTinyFrontendModuleConfig]", () => {
       )
     );
 
-    const tinyFrontendModuleConfig = await getTinyFrontendModuleConfig(
-      "MOCK_LIB_NAME",
-      "MOCK_LIB_VERSION",
-      "https://mock.hostname/api"
-    );
+    const tinyFrontendModuleConfig = await getTinyFrontendModuleConfig({
+      libraryName: "MOCK_LIB_NAME",
+      libraryVersion: "MOCK_LIB_VERSION",
+      hostname: "https://mock.hostname/api",
+    });
 
     expect(tinyFrontendModuleConfig).toEqual({
       umdBundle: "mockBundle.js",
@@ -47,11 +47,11 @@ describe("[getTinyFrontendModuleConfig]", () => {
     );
 
     await expect(
-      getTinyFrontendModuleConfig(
-        "MOCK_LIB_NAME",
-        "MOCK_LIB_VERSION",
-        "https://mock.hostname/api"
-      )
+      getTinyFrontendModuleConfig({
+        libraryName: "MOCK_LIB_NAME",
+        libraryVersion: "MOCK_LIB_VERSION",
+        hostname: "https://mock.hostname/api",
+      })
     ).rejects.toEqual(
       new Error(
         `Failed to fetch tiny frontend MOCK_LIB_NAME version MOCK_LIB_VERSION from API, with status ${status} and body ''`
@@ -69,11 +69,11 @@ describe("[getTinyFrontendModuleConfig]", () => {
     );
 
     await expect(
-      getTinyFrontendModuleConfig(
-        "MOCK_LIB_NAME",
-        "MOCK_LIB_VERSION",
-        "https://mock.hostname/api"
-      )
+      getTinyFrontendModuleConfig({
+        libraryName: "MOCK_LIB_NAME",
+        libraryVersion: "MOCK_LIB_VERSION",
+        hostname: "https://mock.hostname/api",
+      })
     ).rejects.toEqual(
       new Error(
         `Failed to fetch tiny frontend MOCK_LIB_NAME version MOCK_LIB_VERSION from API, while getting JSON body`

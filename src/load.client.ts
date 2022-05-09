@@ -16,7 +16,11 @@ export const loadTinyFrontendClient = async <T>({
 
   const tinyFrontendModuleConfig =
     tinyFrontendModuleConfigFromSsr ??
-    (await getTinyFrontendModuleConfig(name, contractVersion, tinyApiEndpoint));
+    (await getTinyFrontendModuleConfig({
+      libraryName: name,
+      libraryVersion: contractVersion,
+      hostname: tinyApiEndpoint,
+    }));
 
   if (tinyFrontendModuleConfig.cssBundle) {
     const cssBundleUrl = `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.cssBundle}`;
