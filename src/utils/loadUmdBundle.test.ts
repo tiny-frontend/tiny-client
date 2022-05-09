@@ -6,21 +6,21 @@ import {
 } from "msw";
 
 import { server } from "../mocks/server";
-import { loadUmdBundle } from "./loadUmdBundle";
+import { loadUmdBundle, umdBundlesPromiseCacheMap } from "./loadUmdBundle";
 
 interface MockBundle {
   mockExport: string;
 }
 
 describe("[loadUmdBundle]", () => {
+  afterEach(() => umdBundlesPromiseCacheMap.clear());
+
   it("should load and return a UMD bundle", async () => {
     server.use(
       rest.get("https://mock.hostname/api/mockBundle.js", (_, res, ctx) =>
         res(
           ctx.status(200),
-          ctx.text(`
-define([], () => ({ mockExport: "Hello World" }))
-`)
+          ctx.text('define([], () => ({ mockExport: "Hello World" }))')
         )
       )
     );
@@ -28,7 +28,6 @@ define([], () => ({ mockExport: "Hello World" }))
     const umdBundle = await loadUmdBundle<MockBundle>({
       bundleUrl: "https://mock.hostname/api/mockBundle.js",
       dependenciesMap: {},
-      bundleCacheTtlInMs: 0,
     });
 
     expect(umdBundle).toEqual({
@@ -54,7 +53,6 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
         myMockDep: "MOCK_DEP",
         myMockDep2: "MOCK_DEP_2",
       },
-      bundleCacheTtlInMs: 0,
     });
 
     expect(umdBundle).toEqual({
@@ -79,7 +77,6 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
       loadUmdBundle<MockBundle>({
         bundleUrl: "https://mock.hostname/api/mockBundle.js",
         dependenciesMap: {},
-        bundleCacheTtlInMs: 0,
       })
     ).rejects.toEqual(
       new Error(
@@ -106,7 +103,6 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           loadUmdBundle<MockBundle>({
             bundleUrl: "https://mock.hostname/api/mockBundle.js",
             dependenciesMap: {},
-            bundleCacheTtlInMs: 0,
           })
         ).rejects.toEqual(new Error(expectedError));
       });
@@ -129,9 +125,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
             }
             return res(
               ctx.status(200),
-              ctx.text(`
-define([], () => ({ mockExport: "Hello World" }))
-`)
+              ctx.text('define([], () => ({ mockExport: "Hello World" }))')
             );
           })
         );
@@ -139,7 +133,6 @@ define([], () => ({ mockExport: "Hello World" }))
         const umdBundle = await loadUmdBundle<MockBundle>({
           bundleUrl: "https://mock.hostname/api/mockBundle.js",
           dependenciesMap: {},
-          bundleCacheTtlInMs: 0,
           retryPolicy: {
             maxRetries: 1,
             delay: 10,
@@ -148,6 +141,127 @@ define([], () => ({ mockExport: "Hello World" }))
 
         expect(umdBundle).toEqual({
           mockExport: "Hello World",
+        });
+      });
+    });
+  });
+
+  describe("when using cache", () => {
+    describe("when loading the bundle succeeds", () => {
+      let timesServerIsCalled: number;
+      beforeEach(() => {
+        timesServerIsCalled = 0;
+
+        server.use(
+          rest.get("https://mock.hostname/api/mockBundle.js", (_, res, ctx) => {
+            timesServerIsCalled++;
+            return res(
+              ctx.status(200),
+              ctx.text('define([], () => ({ mockExport: "Hello World" }))')
+            );
+          })
+        );
+      });
+
+      describe("when called in parallel", () => {
+        it("should reuse results", async () => {
+          const loadUmdBundleOptions = {
+            bundleUrl: "https://mock.hostname/api/mockBundle.js",
+            dependenciesMap: {},
+          };
+          const [umdBundle1, umdBundle2] = await Promise.all([
+            loadUmdBundle<MockBundle>(loadUmdBundleOptions),
+            loadUmdBundle<MockBundle>(loadUmdBundleOptions),
+          ]);
+
+          expect(umdBundle1).toEqual({
+            mockExport: "Hello World",
+          });
+          expect(umdBundle2).toEqual({
+            mockExport: "Hello World",
+          });
+          expect(umdBundle1).toBe(umdBundle2);
+          expect(timesServerIsCalled).toEqual(1);
+        });
+      });
+
+      describe("when called in sequence", () => {
+        it("should reuse results", async () => {
+          const loadUmdBundleOptions = {
+            bundleUrl: "https://mock.hostname/api/mockBundle.js",
+            dependenciesMap: {},
+          };
+          const umdBundle1 = await loadUmdBundle<MockBundle>(
+            loadUmdBundleOptions
+          );
+          expect(umdBundle1).toEqual({
+            mockExport: "Hello World",
+          });
+
+          const umdBundle2 = await loadUmdBundle<MockBundle>(
+            loadUmdBundleOptions
+          );
+          expect(umdBundle2).toEqual({
+            mockExport: "Hello World",
+          });
+
+          expect(umdBundle1).toBe(umdBundle2);
+
+          expect(timesServerIsCalled).toEqual(1);
+        });
+      });
+
+      describe("when it has a ttl on the second call", () => {
+        it("should expire after ttl has passed", async () => {
+          const loadUmdBundleOptions = {
+            bundleUrl: "https://mock.hostname/api/mockBundle.js",
+            dependenciesMap: {},
+          };
+          const umdBundle1 = await loadUmdBundle<MockBundle>(
+            loadUmdBundleOptions
+          );
+          expect(umdBundle1).toEqual({
+            mockExport: "Hello World",
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, 20));
+
+          const umdBundle2 = await loadUmdBundle<MockBundle>({
+            ...loadUmdBundleOptions,
+            bundleCacheTtlInMs: 10,
+          });
+          expect(umdBundle2).toEqual({
+            mockExport: "Hello World",
+          });
+
+          expect(umdBundle1).not.toBe(umdBundle2);
+
+          expect(timesServerIsCalled).toEqual(2);
+        });
+      });
+
+      describe("when ttl is 0 on the second call", () => {
+        it("should not use cache at all", async () => {
+          const loadUmdBundleOptions = {
+            bundleUrl: "https://mock.hostname/api/mockBundle.js",
+            dependenciesMap: {},
+          };
+          const [umdBundle1, umdBundle2] = await Promise.all([
+            loadUmdBundle<MockBundle>(loadUmdBundleOptions),
+            loadUmdBundle<MockBundle>({
+              ...loadUmdBundleOptions,
+              bundleCacheTtlInMs: 0,
+            }),
+          ]);
+
+          expect(umdBundle1).toEqual({
+            mockExport: "Hello World",
+          });
+          expect(umdBundle2).toEqual({
+            mockExport: "Hello World",
+          });
+          expect(umdBundle1).not.toBe(umdBundle2);
+          expect(timesServerIsCalled).toEqual(2);
         });
       });
     });

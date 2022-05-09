@@ -7,7 +7,7 @@ interface UmdBundleCacheItem {
   timestamp: number;
 }
 
-const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
+export const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
 
 const isCacheItemValid = ({
   timestamp,
