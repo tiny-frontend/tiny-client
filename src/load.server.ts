@@ -34,10 +34,8 @@ export const loadTinyFrontendServer = async <T>({
     const tinyFrontend = await loadUmdBundle<T>({
       bundleUrl: umdBundleUrl,
       dependenciesMap,
-      loadBundleOptions: {
-        ttlInMs: loadingOptions.bundleCacheTtlInMs,
-        retryPolicy: loadingOptions.retryPolicy,
-      },
+      bundleCacheTtlInMs: loadingOptions.bundleCacheTtlInMs,
+      retryPolicy: loadingOptions.retryPolicy,
     });
 
     const moduleConfigScript = `window["tinyFrontend${name}Config"] = ${JSON.stringify(
