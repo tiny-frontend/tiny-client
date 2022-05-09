@@ -58,4 +58,26 @@ describe("[getTinyFrontendModuleConfig]", () => {
       )
     );
   });
+
+  it("should throw an error on invalid JSON", async () => {
+    server.use(
+      rest.get(
+        "https://mock.hostname/api/tiny/latest/MOCK_LIB_NAME/MOCK_LIB_VERSION",
+        (_, res, ctx) =>
+          res(ctx.status(200), ctx.text("THIS IS NOT VALID JSON"))
+      )
+    );
+
+    await expect(
+      getTinyFrontendModuleConfig(
+        "MOCK_LIB_NAME",
+        "MOCK_LIB_VERSION",
+        "https://mock.hostname/api"
+      )
+    ).rejects.toEqual(
+      new Error(
+        `Failed to fetch tiny frontend MOCK_LIB_NAME version MOCK_LIB_VERSION from API, while getting JSON body`
+      )
+    );
+  });
 });
