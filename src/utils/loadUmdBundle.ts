@@ -44,7 +44,7 @@ export const loadUmdBundle = async <T>({
         timestamp: cacheItem.timestamp,
       })
     ) {
-      return (await cacheItem.promise) as Promise<T>;
+      return cacheItem.promise as Promise<T>;
     }
   }
 
@@ -55,19 +55,17 @@ export const loadUmdBundle = async <T>({
         dependenciesMap,
       }),
     retryPolicy
-  );
+  ).catch((err) => {
+    umdBundlesPromiseCacheMap.delete(bundleUrl);
+    throw err;
+  });
 
   umdBundlesPromiseCacheMap.set(bundleUrl, {
     promise: umdBundlePromise,
     timestamp: Date.now(),
   });
 
-  umdBundlePromise.catch((err) => {
-    umdBundlesPromiseCacheMap.delete(bundleUrl);
-    throw err;
-  });
-
-  return await umdBundlePromise;
+  return umdBundlePromise;
 };
 
 export const loadUmdBundleWithoutCache = async <T>({
@@ -80,7 +78,9 @@ export const loadUmdBundleWithoutCache = async <T>({
   const umdBundleSourceResponse = await fetch(bundleUrl);
 
   if (umdBundleSourceResponse.status >= 400) {
-    throw new Error(`Failed to fetch umd bundle at URL ${bundleUrl}`);
+    throw new Error(
+      `Failed to fetch umd bundle at URL ${bundleUrl} with status ${umdBundleSourceResponse.status}`
+    );
   }
 
   const umdBundleSource = await umdBundleSourceResponse.text();
