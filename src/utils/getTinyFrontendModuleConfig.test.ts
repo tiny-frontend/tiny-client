@@ -80,4 +80,41 @@ describe("[getTinyFrontendModuleConfig]", () => {
       )
     );
   });
+
+  it("should retry fetching when passed a retry policy", async () => {
+    let count = 0;
+    server.use(
+      rest.get(
+        "https://mock.hostname/api/tiny/latest/MOCK_LIB_NAME/MOCK_LIB_VERSION",
+        (_, res, ctx) => {
+          if (count === 0) {
+            count++;
+            return res(ctx.status(400));
+          }
+          return res(
+            ctx.status(200),
+            ctx.json({
+              umdBundle: "mockBundle.js",
+              cssBundle: "mockBundle.css",
+            } as TinyFrontendModuleConfig)
+          );
+        }
+      )
+    );
+
+    const tinyFrontendModuleConfig = await getTinyFrontendModuleConfig({
+      libraryName: "MOCK_LIB_NAME",
+      libraryVersion: "MOCK_LIB_VERSION",
+      hostname: "https://mock.hostname/api",
+      retryPolicy: {
+        maxRetries: 2,
+        delay: 10,
+      },
+    });
+
+    expect(tinyFrontendModuleConfig).toEqual({
+      umdBundle: "mockBundle.js",
+      cssBundle: "mockBundle.css",
+    });
+  });
 });

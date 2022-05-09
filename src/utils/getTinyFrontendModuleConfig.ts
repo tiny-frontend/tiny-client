@@ -1,13 +1,40 @@
 import { TinyClientFetchError } from "../errors";
 import { TinyFrontendModuleConfig } from "../types";
+import { RetryOptions } from "./loadUmdBundle";
+import { retryFetch } from "./retryFetch";
+
+interface GetTinyFrontendModuleConfigPropsWithRetryPolicy
+  extends GetTinyFrontendModuleConfigProps {
+  retryPolicy?: RetryOptions;
+}
+
+export const getTinyFrontendModuleConfig = async ({
+  libraryName,
+  libraryVersion,
+  hostname,
+  retryPolicy = {
+    maxRetries: 1,
+    delay: 0,
+  },
+}: GetTinyFrontendModuleConfigPropsWithRetryPolicy): Promise<TinyFrontendModuleConfig> =>
+  retryFetch({
+    loader: () =>
+      getTinyFrontendModuleConfigWithoutRetries({
+        libraryName,
+        libraryVersion,
+        hostname,
+      }),
+    options: retryPolicy,
+  });
 
 interface GetTinyFrontendModuleConfigProps {
   libraryName: string;
   libraryVersion: string;
   hostname: string;
+  retryPolicy?: RetryOptions;
 }
 
-export const getTinyFrontendModuleConfig = async ({
+const getTinyFrontendModuleConfigWithoutRetries = async ({
   libraryName,
   libraryVersion,
   hostname,
