@@ -25,6 +25,8 @@
     "@types/jest": "^27.5.0",
     "eslint": "^7.32.0",
     "jest": "^28.0.3",
+    "msw": "^0.39.2",
+    "isomorphic-unfetch": "^3.1.0",
     "ts-jest": "^28.0.0",
     "typescript": "^4.5.5",
     "vite": "^2.7.13"
