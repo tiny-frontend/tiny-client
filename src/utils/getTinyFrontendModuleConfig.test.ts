@@ -130,6 +130,11 @@ describe("[getTinyFrontendModuleConfig]", () => {
       hostname: "https://mock.hostname/api",
     };
 
+    const expectedModule = {
+      umdBundle: "mockBundle.js",
+      cssBundle: "mockBundle.css",
+    };
+
     describe("when loading the bundle succeeds", () => {
       let timesServerIsCalled: number;
 
@@ -172,18 +177,12 @@ describe("[getTinyFrontendModuleConfig]", () => {
           const config1 = await getTinyFrontendModuleConfig(
             mockGetTinyFrontendModuleConfigProps
           );
-          expect(config1).toEqual({
-            umdBundle: "mockBundle.js",
-            cssBundle: "mockBundle.css",
-          });
+          expect(config1).toEqual(expectedModule);
 
           const config2 = await getTinyFrontendModuleConfig(
             mockGetTinyFrontendModuleConfigProps
           );
-          expect(config2).toEqual({
-            umdBundle: "mockBundle.js",
-            cssBundle: "mockBundle.css",
-          });
+          expect(config2).toEqual(expectedModule);
 
           expect(config1).toBe(config2);
 
@@ -196,10 +195,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
           const config1 = await getTinyFrontendModuleConfig(
             mockGetTinyFrontendModuleConfigProps
           );
-          expect(config1).toEqual({
-            umdBundle: "mockBundle.js",
-            cssBundle: "mockBundle.css",
-          });
+          expect(config1).toEqual(expectedModule);
 
           await new Promise((resolve) => setTimeout(resolve, 20));
 
@@ -207,10 +203,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
             ...mockGetTinyFrontendModuleConfigProps,
             cacheTtlInMs: 10,
           });
-          expect(config2).toEqual({
-            umdBundle: "mockBundle.js",
-            cssBundle: "mockBundle.css",
-          });
+          expect(config2).toEqual(expectedModule);
 
           expect(config1).not.toBe(config2);
 
@@ -228,14 +221,8 @@ describe("[getTinyFrontendModuleConfig]", () => {
             }),
           ]);
 
-          expect(config1).toEqual({
-            umdBundle: "mockBundle.js",
-            cssBundle: "mockBundle.css",
-          });
-          expect(config2).toEqual({
-            umdBundle: "mockBundle.js",
-            cssBundle: "mockBundle.css",
-          });
+          expect(config1).toEqual(expectedModule);
+          expect(config2).toEqual(expectedModule);
           expect(config1).not.toBe(config2);
           expect(timesServerIsCalled).toEqual(2);
         });
