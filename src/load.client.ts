@@ -8,7 +8,7 @@ export const loadTinyFrontendClient = async <T>({
   contractVersion,
   tinyApiEndpoint,
   dependenciesMap = {},
-  loadBundleOptions = {},
+  loadingOptions = {},
 }: LoadTinyFrontendOptions): Promise<T> => {
   const tinyFrontendModuleConfigFromSsr = (
     window as unknown as Record<string, TinyFrontendModuleConfig | undefined>
@@ -16,7 +16,12 @@ export const loadTinyFrontendClient = async <T>({
 
   const tinyFrontendModuleConfig =
     tinyFrontendModuleConfigFromSsr ??
-    (await getTinyFrontendModuleConfig(name, contractVersion, tinyApiEndpoint));
+    (await getTinyFrontendModuleConfig({
+      libraryName: name,
+      libraryVersion: contractVersion,
+      hostname: tinyApiEndpoint,
+      retryPolicy: loadingOptions.retryPolicy,
+    }));
 
   if (tinyFrontendModuleConfig.cssBundle) {
     const cssBundleUrl = `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.cssBundle}`;
@@ -32,7 +37,8 @@ export const loadTinyFrontendClient = async <T>({
     return await loadUmdBundle({
       bundleUrl: `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.umdBundle}`,
       dependenciesMap,
-      loadBundleOptions,
+      bundleCacheTtlInMs: loadingOptions.bundleCacheTtlInMs,
+      retryPolicy: loadingOptions.retryPolicy,
     });
   } catch (err) {
     console.error(err);

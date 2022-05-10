@@ -1,11 +1,52 @@
 import { TinyClientFetchError } from "../errors";
 import { TinyFrontendModuleConfig } from "../types";
+import { retry, RetryPolicy } from "./retry";
 
-export const getTinyFrontendModuleConfig = async (
-  libraryName: string,
-  libraryVersion: string,
-  hostname: string
-): Promise<TinyFrontendModuleConfig> => {
+interface GetTinyFrontendModuleConfigPropsWithRetryPolicy
+  extends GetTinyFrontendModuleConfigProps {
+  retryPolicy?: RetryPolicy;
+}
+
+let getTinyFrontendModuleConfigInFlightPromise: Promise<TinyFrontendModuleConfig> | null;
+
+export const getTinyFrontendModuleConfig = async ({
+  libraryName,
+  libraryVersion,
+  hostname,
+  retryPolicy = {
+    maxRetries: 0,
+    delayInMs: 0,
+  },
+}: GetTinyFrontendModuleConfigPropsWithRetryPolicy): Promise<TinyFrontendModuleConfig> => {
+  if (getTinyFrontendModuleConfigInFlightPromise) {
+    return getTinyFrontendModuleConfigInFlightPromise;
+  }
+
+  getTinyFrontendModuleConfigInFlightPromise = retry(
+    () =>
+      getTinyFrontendModuleConfigWithoutRetries({
+        libraryName,
+        libraryVersion,
+        hostname,
+      }),
+    retryPolicy
+  ).finally(() => (getTinyFrontendModuleConfigInFlightPromise = null));
+
+  return getTinyFrontendModuleConfigInFlightPromise;
+};
+
+interface GetTinyFrontendModuleConfigProps {
+  libraryName: string;
+  libraryVersion: string;
+  hostname: string;
+  retryPolicy?: RetryPolicy;
+}
+
+const getTinyFrontendModuleConfigWithoutRetries = async ({
+  libraryName,
+  libraryVersion,
+  hostname,
+}: GetTinyFrontendModuleConfigProps): Promise<TinyFrontendModuleConfig> => {
   let response;
 
   try {
