@@ -130,7 +130,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
       hostname: "https://mock.hostname/api",
     };
 
-    const expectedModule = {
+    const expectedModuleConfig = {
       umdBundle: "mockBundle.js",
       cssBundle: "mockBundle.css",
     };
@@ -177,12 +177,12 @@ describe("[getTinyFrontendModuleConfig]", () => {
           const config1 = await getTinyFrontendModuleConfig(
             mockGetTinyFrontendModuleConfigProps
           );
-          expect(config1).toEqual(expectedModule);
+          expect(config1).toEqual(expectedModuleConfig);
 
           const config2 = await getTinyFrontendModuleConfig(
             mockGetTinyFrontendModuleConfigProps
           );
-          expect(config2).toEqual(expectedModule);
+          expect(config2).toEqual(expectedModuleConfig);
 
           expect(config1).toBe(config2);
 
@@ -195,7 +195,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
           const config1 = await getTinyFrontendModuleConfig(
             mockGetTinyFrontendModuleConfigProps
           );
-          expect(config1).toEqual(expectedModule);
+          expect(config1).toEqual(expectedModuleConfig);
 
           await new Promise((resolve) => setTimeout(resolve, 20));
 
@@ -203,7 +203,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
             ...mockGetTinyFrontendModuleConfigProps,
             cacheTtlInMs: 10,
           });
-          expect(config2).toEqual(expectedModule);
+          expect(config2).toEqual(expectedModuleConfig);
 
           expect(config1).not.toBe(config2);
 
@@ -221,8 +221,8 @@ describe("[getTinyFrontendModuleConfig]", () => {
             }),
           ]);
 
-          expect(config1).toEqual(expectedModule);
-          expect(config2).toEqual(expectedModule);
+          expect(config1).toEqual(expectedModuleConfig);
+          expect(config2).toEqual(expectedModuleConfig);
           expect(config1).not.toBe(config2);
           expect(apiCallsCount).toEqual(2);
         });
