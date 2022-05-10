@@ -3,7 +3,7 @@ import { TinyFrontendModuleConfig } from "../types";
 import { retry, RetryPolicy } from "./retry";
 
 interface GetTinyFrontendModuleConfigProps
-  extends GetTinyFrontendModuleConfigPropsBase {
+  extends GetTinyFrontendModuleConfigBaseProps {
   cacheTtlInMs?: number;
   retryPolicy?: RetryPolicy;
 }
@@ -51,7 +51,7 @@ export const getTinyFrontendModuleConfig = async ({
 
   const moduleConfigPromise = retry(
     () =>
-      getTinyFrontendModuleConfigWithoutRetries({
+      getTinyFrontendModuleConfigBase({
         libraryName,
         libraryVersion,
         hostname,
@@ -70,18 +70,18 @@ export const getTinyFrontendModuleConfig = async ({
   return moduleConfigPromise;
 };
 
-interface GetTinyFrontendModuleConfigPropsBase {
+interface GetTinyFrontendModuleConfigBaseProps {
   libraryName: string;
   libraryVersion: string;
   hostname: string;
   retryPolicy?: RetryPolicy;
 }
 
-const getTinyFrontendModuleConfigWithoutRetries = async ({
+const getTinyFrontendModuleConfigBase = async ({
   libraryName,
   libraryVersion,
   hostname,
-}: GetTinyFrontendModuleConfigPropsBase): Promise<TinyFrontendModuleConfig> => {
+}: GetTinyFrontendModuleConfigBaseProps): Promise<TinyFrontendModuleConfig> => {
   let response;
 
   try {
