@@ -3,6 +3,7 @@ import "@ungap/global-this";
 import { retry, RetryPolicy } from "./retry";
 
 interface UmdBundleCacheItem {
+  bundleUrl: string;
   promise: Promise<unknown>;
   timestamp: number;
 }
@@ -12,19 +13,21 @@ export const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
 interface LoadUmdBundleProps {
   bundleUrl: string;
   dependenciesMap: Record<string, unknown>;
+  baseCacheKey: string;
   retryPolicy?: RetryPolicy;
 }
 
 export const loadUmdBundle = async <T>({
   bundleUrl,
   dependenciesMap,
+  baseCacheKey,
   retryPolicy = {
     maxRetries: 0,
     delayInMs: 0,
   },
 }: LoadUmdBundleProps): Promise<T> => {
-  const cacheItem = umdBundlesPromiseCacheMap.get(bundleUrl);
-  if (cacheItem) {
+  const cacheItem = umdBundlesPromiseCacheMap.get(baseCacheKey);
+  if (cacheItem && cacheItem.bundleUrl === bundleUrl) {
     return cacheItem.promise as Promise<T>;
   }
 
@@ -36,11 +39,12 @@ export const loadUmdBundle = async <T>({
       }),
     retryPolicy
   ).catch((err) => {
-    umdBundlesPromiseCacheMap.delete(bundleUrl);
+    umdBundlesPromiseCacheMap.delete(baseCacheKey);
     throw err;
   });
 
-  umdBundlesPromiseCacheMap.set(bundleUrl, {
+  umdBundlesPromiseCacheMap.set(baseCacheKey, {
+    bundleUrl,
     promise: umdBundlePromise,
     timestamp: Date.now(),
   });

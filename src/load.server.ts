@@ -37,6 +37,7 @@ export const loadTinyFrontendServer = async <T>({
     const tinyFrontend = await loadUmdBundle<T>({
       bundleUrl: umdBundleUrl,
       dependenciesMap,
+      baseCacheKey: `${name}-${contractVersion}`,
       retryPolicy,
     });
 

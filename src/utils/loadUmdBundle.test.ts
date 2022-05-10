@@ -28,6 +28,7 @@ describe("[loadUmdBundle]", () => {
     const umdBundle = await loadUmdBundle<MockBundle>({
       bundleUrl: "https://mock.hostname/api/mockBundle.js",
       dependenciesMap: {},
+      baseCacheKey: "bundle-1.0.0",
     });
 
     expect(umdBundle).toEqual({
@@ -53,6 +54,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
         myMockDep: "MOCK_DEP",
         myMockDep2: "MOCK_DEP_2",
       },
+      baseCacheKey: "bundle-1.0.0",
     });
 
     expect(umdBundle).toEqual({
@@ -77,6 +79,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
       loadUmdBundle<MockBundle>({
         bundleUrl: "https://mock.hostname/api/mockBundle.js",
         dependenciesMap: {},
+        baseCacheKey: "bundle-1.0.0",
       })
     ).rejects.toEqual(
       new Error(
@@ -103,6 +106,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           loadUmdBundle<MockBundle>({
             bundleUrl: "https://mock.hostname/api/mockBundle.js",
             dependenciesMap: {},
+            baseCacheKey: "bundle-1.0.0",
           })
         ).rejects.toEqual(new Error(expectedError));
       });
@@ -137,6 +141,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
             maxRetries: 1,
             delayInMs: 10,
           },
+          baseCacheKey: "bundle-1.0.0",
         });
 
         expect(umdBundle).toEqual({
@@ -168,6 +173,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           const loadUmdBundleOptions = {
             bundleUrl: "https://mock.hostname/api/mockBundle.js",
             dependenciesMap: {},
+            baseCacheKey: "bundle-1.0.0",
           };
           const [umdBundle1, umdBundle2] = await Promise.all([
             loadUmdBundle<MockBundle>(loadUmdBundleOptions),
@@ -190,6 +196,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           const loadUmdBundleOptions = {
             bundleUrl: "https://mock.hostname/api/mockBundle.js",
             dependenciesMap: {},
+            baseCacheKey: "bundle-1.0.0",
           };
           const umdBundle1 = await loadUmdBundle<MockBundle>(
             loadUmdBundleOptions
@@ -208,6 +215,60 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           expect(umdBundle1).toBe(umdBundle2);
 
           expect(timesServerIsCalled).toEqual(1);
+        });
+      });
+
+      /*
+      This behaviour avoids memory leaks if the host is a long-running process.
+      This avoids having more than one bundle in memory for any given contract version.
+       */
+      describe("when bundleUrl changes for a given baseCacheKey", () => {
+        it("should bust the cache for the initial bundleUrl", async () => {
+          const loadUmdBundleOptions = {
+            bundleUrl: "https://mock.hostname/api/mockBundle.js",
+            dependenciesMap: {},
+            baseCacheKey: "bundle-1.0.0",
+          };
+
+          server.use(
+            rest.get(
+              "https://mock.hostname/api/mockBundle2.js",
+              (_, res, ctx) =>
+                res(
+                  ctx.status(200),
+                  ctx.text(
+                    'define([], () => ({ mockExport: "This is bundle2" }))'
+                  )
+                )
+            )
+          );
+
+          const umdBundle1 = await loadUmdBundle<MockBundle>(
+            loadUmdBundleOptions
+          );
+          expect(umdBundle1).toEqual({
+            mockExport: "Hello World",
+          });
+
+          const umdBundle2 = await loadUmdBundle<MockBundle>({
+            ...loadUmdBundleOptions,
+            bundleUrl: "https://mock.hostname/api/mockBundle2.js",
+          });
+          expect(umdBundle2).toEqual({
+            mockExport: "This is bundle2",
+          });
+
+          expect(timesServerIsCalled).toEqual(1);
+
+          const umdBundle1SecondTime = await loadUmdBundle<MockBundle>(
+            loadUmdBundleOptions
+          );
+          expect(umdBundle1SecondTime).toEqual({
+            mockExport: "Hello World",
+          });
+
+          expect(umdBundle1).not.toBe(umdBundle1SecondTime);
+          expect(timesServerIsCalled).toEqual(2);
         });
       });
     });
@@ -230,6 +291,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           const loadUmdBundleOptions = {
             bundleUrl: "https://mock.hostname/api/mockBundle.js",
             dependenciesMap: {},
+            baseCacheKey: "bundle-1.0.0",
           };
 
           const promise1 = loadUmdBundle<MockBundle>(loadUmdBundleOptions);
@@ -259,6 +321,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           const loadUmdBundleOptions = {
             bundleUrl: "https://mock.hostname/api/mockBundle.js",
             dependenciesMap: {},
+            baseCacheKey: "bundle-1.0.0",
           };
           await expect(
             loadUmdBundle<MockBundle>(loadUmdBundleOptions)

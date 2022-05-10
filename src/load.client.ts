@@ -40,6 +40,7 @@ export const loadTinyFrontendClient = async <T>({
     return await loadUmdBundle({
       bundleUrl: `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.umdBundle}`,
       dependenciesMap,
+      baseCacheKey: `${name}-${contractVersion}`,
       retryPolicy,
     });
   } catch (err) {
