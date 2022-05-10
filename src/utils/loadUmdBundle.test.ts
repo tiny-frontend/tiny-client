@@ -31,9 +31,7 @@ describe("[loadUmdBundle]", () => {
       baseCacheKey: "bundle-1.0.0",
     });
 
-    expect(umdBundle).toEqual({
-      mockExport: "Hello World",
-    });
+    expect(umdBundle).toEqual({ mockExport: "Hello World" });
   });
 
   it("should provide dependencies to the UMD bundle", async () => {
@@ -57,9 +55,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
       baseCacheKey: "bundle-1.0.0",
     });
 
-    expect(umdBundle).toEqual({
-      mockExport: "MOCK_DEP - MOCK_DEP_2",
-    });
+    expect(umdBundle).toEqual({ mockExport: "MOCK_DEP - MOCK_DEP_2" });
   });
 
   it.each`
@@ -144,9 +140,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           baseCacheKey: "bundle-1.0.0",
         });
 
-        expect(umdBundle).toEqual({
-          mockExport: "Hello World",
-        });
+        expect(umdBundle).toEqual({ mockExport: "Hello World" });
       });
     });
   });
@@ -181,12 +175,8 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
             loadUmdBundle<MockBundle>(mockLoadUmdBundleOptions),
           ]);
 
-          expect(umdBundle1).toEqual({
-            mockExport: "Hello World",
-          });
-          expect(umdBundle2).toEqual({
-            mockExport: "Hello World",
-          });
+          expect(umdBundle1).toEqual({ mockExport: "Hello World" });
+          expect(umdBundle2).toEqual({ mockExport: "Hello World" });
           expect(umdBundle1).toBe(umdBundle2);
           expect(timesServerIsCalled).toEqual(1);
         });
@@ -197,16 +187,12 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           const umdBundle1 = await loadUmdBundle<MockBundle>(
             mockLoadUmdBundleOptions
           );
-          expect(umdBundle1).toEqual({
-            mockExport: "Hello World",
-          });
+          expect(umdBundle1).toEqual({ mockExport: "Hello World" });
 
           const umdBundle2 = await loadUmdBundle<MockBundle>(
             mockLoadUmdBundleOptions
           );
-          expect(umdBundle2).toEqual({
-            mockExport: "Hello World",
-          });
+          expect(umdBundle2).toEqual({ mockExport: "Hello World" });
 
           expect(umdBundle1).toBe(umdBundle2);
 
@@ -236,26 +222,20 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           const umdBundle1 = await loadUmdBundle<MockBundle>(
             mockLoadUmdBundleOptions
           );
-          expect(umdBundle1).toEqual({
-            mockExport: "Hello World",
-          });
+          expect(umdBundle1).toEqual({ mockExport: "Hello World" });
 
           const umdBundle2 = await loadUmdBundle<MockBundle>({
             ...mockLoadUmdBundleOptions,
             bundleUrl: "https://mock.hostname/api/mockBundle2.js",
           });
-          expect(umdBundle2).toEqual({
-            mockExport: "This is bundle2",
-          });
+          expect(umdBundle2).toEqual({ mockExport: "This is bundle2" });
 
           expect(timesServerIsCalled).toEqual(1);
 
           const umdBundle1SecondTime = await loadUmdBundle<MockBundle>(
             mockLoadUmdBundleOptions
           );
-          expect(umdBundle1SecondTime).toEqual({
-            mockExport: "Hello World",
-          });
+          expect(umdBundle1SecondTime).toEqual({ mockExport: "Hello World" });
 
           expect(umdBundle1).not.toBe(umdBundle1SecondTime);
           expect(timesServerIsCalled).toEqual(2);
