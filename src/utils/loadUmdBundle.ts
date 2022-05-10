@@ -3,49 +3,31 @@ import "@ungap/global-this";
 import { retry, RetryPolicy } from "./retry";
 
 interface UmdBundleCacheItem {
+  bundleUrl: string;
   promise: Promise<unknown>;
-  timestamp: number;
 }
 
 export const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
 
-const isCacheItemValid = ({
-  timestamp,
-  ttlInMs,
-}: {
-  timestamp: number;
-  ttlInMs?: number;
-}) => ttlInMs == null || Date.now() - timestamp < ttlInMs;
-
 interface LoadUmdBundleProps {
   bundleUrl: string;
   dependenciesMap: Record<string, unknown>;
-  bundleCacheTtlInMs?: number;
+  baseCacheKey: string;
   retryPolicy?: RetryPolicy;
 }
 
 export const loadUmdBundle = async <T>({
   bundleUrl,
   dependenciesMap,
-  bundleCacheTtlInMs,
+  baseCacheKey,
   retryPolicy = {
     maxRetries: 0,
     delayInMs: 0,
   },
 }: LoadUmdBundleProps): Promise<T> => {
-  if (umdBundlesPromiseCacheMap.has(bundleUrl)) {
-    const cacheItem = umdBundlesPromiseCacheMap.get(
-      bundleUrl
-    ) as UmdBundleCacheItem;
-
-    if (
-      isCacheItemValid({
-        ttlInMs: bundleCacheTtlInMs,
-        timestamp: cacheItem.timestamp,
-      })
-    ) {
-      return cacheItem.promise as Promise<T>;
-    }
+  const cacheItem = umdBundlesPromiseCacheMap.get(baseCacheKey);
+  if (cacheItem && cacheItem.bundleUrl === bundleUrl) {
+    return cacheItem.promise as Promise<T>;
   }
 
   const umdBundlePromise = retry(
@@ -56,13 +38,13 @@ export const loadUmdBundle = async <T>({
       }),
     retryPolicy
   ).catch((err) => {
-    umdBundlesPromiseCacheMap.delete(bundleUrl);
+    umdBundlesPromiseCacheMap.delete(baseCacheKey);
     throw err;
   });
 
-  umdBundlesPromiseCacheMap.set(bundleUrl, {
+  umdBundlesPromiseCacheMap.set(baseCacheKey, {
+    bundleUrl,
     promise: umdBundlePromise,
-    timestamp: Date.now(),
   });
 
   return umdBundlePromise;
