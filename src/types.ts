@@ -1,7 +1,7 @@
 import { RetryPolicy } from "./utils/retry";
 
 export interface LoadingOptions {
-  bundleCacheTtlInMs?: number;
+  cacheTtlInMs?: number;
   retryPolicy?: RetryPolicy;
 }
 

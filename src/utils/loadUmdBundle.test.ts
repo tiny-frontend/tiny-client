@@ -210,60 +210,6 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           expect(timesServerIsCalled).toEqual(1);
         });
       });
-
-      describe("when it has a ttl on the second call", () => {
-        it("should expire after ttl has passed", async () => {
-          const loadUmdBundleOptions = {
-            bundleUrl: "https://mock.hostname/api/mockBundle.js",
-            dependenciesMap: {},
-          };
-          const umdBundle1 = await loadUmdBundle<MockBundle>(
-            loadUmdBundleOptions
-          );
-          expect(umdBundle1).toEqual({
-            mockExport: "Hello World",
-          });
-
-          await new Promise((resolve) => setTimeout(resolve, 20));
-
-          const umdBundle2 = await loadUmdBundle<MockBundle>({
-            ...loadUmdBundleOptions,
-            bundleCacheTtlInMs: 10,
-          });
-          expect(umdBundle2).toEqual({
-            mockExport: "Hello World",
-          });
-
-          expect(umdBundle1).not.toBe(umdBundle2);
-
-          expect(timesServerIsCalled).toEqual(2);
-        });
-      });
-
-      describe("when ttl is 0 on the second call", () => {
-        it("should not use cache at all", async () => {
-          const loadUmdBundleOptions = {
-            bundleUrl: "https://mock.hostname/api/mockBundle.js",
-            dependenciesMap: {},
-          };
-          const [umdBundle1, umdBundle2] = await Promise.all([
-            loadUmdBundle<MockBundle>(loadUmdBundleOptions),
-            loadUmdBundle<MockBundle>({
-              ...loadUmdBundleOptions,
-              bundleCacheTtlInMs: 0,
-            }),
-          ]);
-
-          expect(umdBundle1).toEqual({
-            mockExport: "Hello World",
-          });
-          expect(umdBundle2).toEqual({
-            mockExport: "Hello World",
-          });
-          expect(umdBundle1).not.toBe(umdBundle2);
-          expect(timesServerIsCalled).toEqual(2);
-        });
-      });
     });
 
     describe("when loading the bundle fails", () => {

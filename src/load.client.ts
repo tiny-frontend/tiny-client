@@ -21,6 +21,7 @@ export const loadTinyFrontendClient = async <T>({
       libraryVersion: contractVersion,
       hostname: tinyApiEndpoint,
       retryPolicy: loadingOptions.retryPolicy,
+      cacheTtlInMs: loadingOptions.cacheTtlInMs,
     }));
 
   if (tinyFrontendModuleConfig.cssBundle) {
@@ -37,7 +38,6 @@ export const loadTinyFrontendClient = async <T>({
     return await loadUmdBundle({
       bundleUrl: `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.umdBundle}`,
       dependenciesMap,
-      bundleCacheTtlInMs: loadingOptions.bundleCacheTtlInMs,
       retryPolicy: loadingOptions.retryPolicy,
     });
   } catch (err) {

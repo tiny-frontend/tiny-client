@@ -2,12 +2,29 @@ import { TinyClientFetchError } from "../errors";
 import { TinyFrontendModuleConfig } from "../types";
 import { retry, RetryPolicy } from "./retry";
 
-interface GetTinyFrontendModuleConfigPropsWithRetryPolicy
-  extends GetTinyFrontendModuleConfigProps {
+interface GetTinyFrontendModuleConfigProps
+  extends GetTinyFrontendModuleConfigPropsBase {
+  cacheTtlInMs?: number;
   retryPolicy?: RetryPolicy;
 }
 
-let getTinyFrontendModuleConfigInFlightPromise: Promise<TinyFrontendModuleConfig> | null;
+interface ModuleConfigCacheItem {
+  promise: Promise<TinyFrontendModuleConfig>;
+  timestamp: number;
+}
+
+const isCacheItemValid = ({
+  timestamp,
+  ttlInMs,
+}: {
+  timestamp: number;
+  ttlInMs?: number;
+}) => ttlInMs == null || Date.now() - timestamp < ttlInMs;
+
+export const moduleConfigPromiseCacheMap = new Map<
+  string,
+  ModuleConfigCacheItem
+>();
 
 export const getTinyFrontendModuleConfig = async ({
   libraryName,
@@ -17,12 +34,22 @@ export const getTinyFrontendModuleConfig = async ({
     maxRetries: 0,
     delayInMs: 0,
   },
-}: GetTinyFrontendModuleConfigPropsWithRetryPolicy): Promise<TinyFrontendModuleConfig> => {
-  if (getTinyFrontendModuleConfigInFlightPromise) {
-    return getTinyFrontendModuleConfigInFlightPromise;
+  cacheTtlInMs,
+}: GetTinyFrontendModuleConfigProps): Promise<TinyFrontendModuleConfig> => {
+  const cacheKey = `${libraryName}-${libraryVersion}-${hostname}`;
+
+  const cacheItem = moduleConfigPromiseCacheMap.get(cacheKey);
+  if (
+    cacheItem &&
+    isCacheItemValid({
+      ttlInMs: cacheTtlInMs,
+      timestamp: cacheItem.timestamp,
+    })
+  ) {
+    return cacheItem.promise;
   }
 
-  getTinyFrontendModuleConfigInFlightPromise = retry(
+  const moduleConfigPromise = retry(
     () =>
       getTinyFrontendModuleConfigWithoutRetries({
         libraryName,
@@ -30,12 +57,20 @@ export const getTinyFrontendModuleConfig = async ({
         hostname,
       }),
     retryPolicy
-  ).finally(() => (getTinyFrontendModuleConfigInFlightPromise = null));
+  ).catch((err) => {
+    moduleConfigPromiseCacheMap.delete(cacheKey);
+    throw err;
+  });
 
-  return getTinyFrontendModuleConfigInFlightPromise;
+  moduleConfigPromiseCacheMap.set(cacheKey, {
+    promise: moduleConfigPromise,
+    timestamp: Date.now(),
+  });
+
+  return moduleConfigPromise;
 };
 
-interface GetTinyFrontendModuleConfigProps {
+interface GetTinyFrontendModuleConfigPropsBase {
   libraryName: string;
   libraryVersion: string;
   hostname: string;
@@ -46,7 +81,7 @@ const getTinyFrontendModuleConfigWithoutRetries = async ({
   libraryName,
   libraryVersion,
   hostname,
-}: GetTinyFrontendModuleConfigProps): Promise<TinyFrontendModuleConfig> => {
+}: GetTinyFrontendModuleConfigPropsBase): Promise<TinyFrontendModuleConfig> => {
   let response;
 
   try {

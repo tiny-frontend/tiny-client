@@ -9,43 +9,23 @@ interface UmdBundleCacheItem {
 
 export const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
 
-const isCacheItemValid = ({
-  timestamp,
-  ttlInMs,
-}: {
-  timestamp: number;
-  ttlInMs?: number;
-}) => ttlInMs == null || Date.now() - timestamp < ttlInMs;
-
 interface LoadUmdBundleProps {
   bundleUrl: string;
   dependenciesMap: Record<string, unknown>;
-  bundleCacheTtlInMs?: number;
   retryPolicy?: RetryPolicy;
 }
 
 export const loadUmdBundle = async <T>({
   bundleUrl,
   dependenciesMap,
-  bundleCacheTtlInMs,
   retryPolicy = {
     maxRetries: 0,
     delayInMs: 0,
   },
 }: LoadUmdBundleProps): Promise<T> => {
-  if (umdBundlesPromiseCacheMap.has(bundleUrl)) {
-    const cacheItem = umdBundlesPromiseCacheMap.get(
-      bundleUrl
-    ) as UmdBundleCacheItem;
-
-    if (
-      isCacheItemValid({
-        ttlInMs: bundleCacheTtlInMs,
-        timestamp: cacheItem.timestamp,
-      })
-    ) {
-      return cacheItem.promise as Promise<T>;
-    }
+  const cacheItem = umdBundlesPromiseCacheMap.get(bundleUrl);
+  if (cacheItem) {
+    return cacheItem.promise as Promise<T>;
   }
 
   const umdBundlePromise = retry(
