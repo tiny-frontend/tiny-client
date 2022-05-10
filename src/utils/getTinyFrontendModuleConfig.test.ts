@@ -136,16 +136,16 @@ describe("[getTinyFrontendModuleConfig]", () => {
     };
 
     describe("when loading the bundle succeeds", () => {
-      let timesServerIsCalled: number;
+      let apiCallsCount: number;
 
       beforeEach(() => {
-        timesServerIsCalled = 0;
+        apiCallsCount = 0;
 
         server.use(
           rest.get(
             "https://mock.hostname/api/tiny/latest/MOCK_LIB_NAME/MOCK_LIB_VERSION",
             (_, res, ctx) => {
-              timesServerIsCalled++;
+              apiCallsCount++;
 
               return res(
                 ctx.status(200),
@@ -168,7 +168,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
 
           expect(config1).toEqual(config2);
 
-          expect(timesServerIsCalled).toEqual(1);
+          expect(apiCallsCount).toEqual(1);
         });
       });
 
@@ -186,7 +186,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
 
           expect(config1).toBe(config2);
 
-          expect(timesServerIsCalled).toEqual(1);
+          expect(apiCallsCount).toEqual(1);
         });
       });
 
@@ -207,7 +207,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
 
           expect(config1).not.toBe(config2);
 
-          expect(timesServerIsCalled).toEqual(2);
+          expect(apiCallsCount).toEqual(2);
         });
       });
 
@@ -224,7 +224,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
           expect(config1).toEqual(expectedModule);
           expect(config2).toEqual(expectedModule);
           expect(config1).not.toBe(config2);
-          expect(timesServerIsCalled).toEqual(2);
+          expect(apiCallsCount).toEqual(2);
         });
       });
     });
@@ -232,13 +232,13 @@ describe("[getTinyFrontendModuleConfig]", () => {
     describe("when loading the config fails", () => {
       describe("when called in parallel", () => {
         it("should call the server only once and fail for all", async () => {
-          let timesServerIsCalled = 0;
+          let apiCallsCount = 0;
 
           server.use(
             rest.get(
               "https://mock.hostname/api/tiny/latest/MOCK_LIB_NAME/MOCK_LIB_VERSION",
               (_, res, ctx) => {
-                timesServerIsCalled++;
+                apiCallsCount++;
                 return res(ctx.status(400));
               }
             )
@@ -254,19 +254,19 @@ describe("[getTinyFrontendModuleConfig]", () => {
           await expect(promise1).rejects.toBeDefined();
           await expect(promise2).rejects.toBeDefined();
 
-          expect(timesServerIsCalled).toEqual(1);
+          expect(apiCallsCount).toEqual(1);
         });
       });
 
       describe("when called in sequence", () => {
         it("should not cache results and call the server again the second time", async () => {
-          let timesServerIsCalled = 0;
+          let apiCallsCount = 0;
 
           server.use(
             rest.get(
               "https://mock.hostname/api/tiny/latest/MOCK_LIB_NAME/MOCK_LIB_VERSION",
               (_, res, ctx) => {
-                timesServerIsCalled++;
+                apiCallsCount++;
                 return res(ctx.status(400));
               }
             )
@@ -279,7 +279,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
             getTinyFrontendModuleConfig(mockGetTinyFrontendModuleConfigProps)
           ).rejects.toBeDefined();
 
-          expect(timesServerIsCalled).toEqual(2);
+          expect(apiCallsCount).toEqual(2);
         });
       });
     });

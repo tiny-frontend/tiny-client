@@ -153,13 +153,13 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
     };
 
     describe("when loading the bundle succeeds", () => {
-      let timesServerIsCalled: number;
+      let apiCallsCount: number;
       beforeEach(() => {
-        timesServerIsCalled = 0;
+        apiCallsCount = 0;
 
         server.use(
           rest.get("https://mock.hostname/api/mockBundle.js", (_, res, ctx) => {
-            timesServerIsCalled++;
+            apiCallsCount++;
             return res(
               ctx.status(200),
               ctx.text('define([], () => ({ mockExport: "Hello World" }))')
@@ -178,7 +178,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           expect(umdBundle1).toEqual({ mockExport: "Hello World" });
           expect(umdBundle2).toEqual({ mockExport: "Hello World" });
           expect(umdBundle1).toBe(umdBundle2);
-          expect(timesServerIsCalled).toEqual(1);
+          expect(apiCallsCount).toEqual(1);
         });
       });
 
@@ -196,7 +196,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
 
           expect(umdBundle1).toBe(umdBundle2);
 
-          expect(timesServerIsCalled).toEqual(1);
+          expect(apiCallsCount).toEqual(1);
         });
       });
 
@@ -230,7 +230,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           });
           expect(umdBundle2).toEqual({ mockExport: "This is bundle2" });
 
-          expect(timesServerIsCalled).toEqual(1);
+          expect(apiCallsCount).toEqual(1);
 
           const umdBundle1SecondTime = await loadUmdBundle<MockBundle>(
             mockLoadUmdBundleOptions
@@ -238,7 +238,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           expect(umdBundle1SecondTime).toEqual({ mockExport: "Hello World" });
 
           expect(umdBundle1).not.toBe(umdBundle1SecondTime);
-          expect(timesServerIsCalled).toEqual(2);
+          expect(apiCallsCount).toEqual(2);
         });
       });
     });
@@ -246,13 +246,13 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
     describe("when loading the bundle fails", () => {
       describe("when called in parallel", () => {
         it("should call the server only once and fail for all", async () => {
-          let timesServerIsCalled = 0;
+          let apiCallsCount = 0;
 
           server.use(
             rest.get(
               "https://mock.hostname/api/mockBundle.js",
               (_, res, ctx) => {
-                timesServerIsCalled++;
+                apiCallsCount++;
                 return res(ctx.status(400));
               }
             )
@@ -264,19 +264,19 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           await expect(promise1).rejects.toBeDefined();
           await expect(promise2).rejects.toBeDefined();
 
-          expect(timesServerIsCalled).toEqual(1);
+          expect(apiCallsCount).toEqual(1);
         });
       });
 
       describe("when called in sequence", () => {
         it("should not cache results and call the server again the second time", async () => {
-          let timesServerIsCalled = 0;
+          let apiCallsCount = 0;
 
           server.use(
             rest.get(
               "https://mock.hostname/api/mockBundle.js",
               (_, res, ctx) => {
-                timesServerIsCalled++;
+                apiCallsCount++;
                 return res(ctx.status(400));
               }
             )
@@ -289,7 +289,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
             loadUmdBundle<MockBundle>(mockLoadUmdBundleOptions)
           ).rejects.toBeDefined();
 
-          expect(timesServerIsCalled).toEqual(2);
+          expect(apiCallsCount).toEqual(2);
         });
       });
     });
