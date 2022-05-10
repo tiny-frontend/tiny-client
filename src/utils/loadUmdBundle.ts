@@ -5,7 +5,6 @@ import { retry, RetryPolicy } from "./retry";
 interface UmdBundleCacheItem {
   bundleUrl: string;
   promise: Promise<unknown>;
-  timestamp: number;
 }
 
 export const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
@@ -46,7 +45,6 @@ export const loadUmdBundle = async <T>({
   umdBundlesPromiseCacheMap.set(baseCacheKey, {
     bundleUrl,
     promise: umdBundlePromise,
-    timestamp: Date.now(),
   });
 
   return umdBundlePromise;
