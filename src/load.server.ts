@@ -18,12 +18,14 @@ export const loadTinyFrontendServer = async <T>({
   dependenciesMap = {},
   loadingOptions = {},
 }: LoadTinyFrontendOptions): Promise<TinyFrontendServerResponse<T>> => {
+  const { retryPolicy, cacheTtlInMs = 2 * 60 * 1_000 } = loadingOptions;
+
   const tinyFrontendModuleConfig = await getTinyFrontendModuleConfig({
     libraryName: name,
     libraryVersion: contractVersion,
     hostname: tinyApiEndpoint,
-    retryPolicy: loadingOptions.retryPolicy,
-    cacheTtlInMs: loadingOptions.cacheTtlInMs,
+    retryPolicy,
+    cacheTtlInMs,
   });
 
   const umdBundleUrl = `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.umdBundle}`;
@@ -35,7 +37,7 @@ export const loadTinyFrontendServer = async <T>({
     const tinyFrontend = await loadUmdBundle<T>({
       bundleUrl: umdBundleUrl,
       dependenciesMap,
-      retryPolicy: loadingOptions.retryPolicy,
+      retryPolicy,
     });
 
     const moduleConfigScript = `window["tinyFrontend${name}Config"] = ${JSON.stringify(
