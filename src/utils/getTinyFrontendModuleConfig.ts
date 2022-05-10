@@ -15,7 +15,7 @@ export const getTinyFrontendModuleConfig = async ({
   hostname,
   retryPolicy = {
     maxRetries: 0,
-    delay: 0,
+    delayInMs: 0,
   },
 }: GetTinyFrontendModuleConfigPropsWithRetryPolicy): Promise<TinyFrontendModuleConfig> => {
   if (getTinyFrontendModuleConfigInFlightPromise) {

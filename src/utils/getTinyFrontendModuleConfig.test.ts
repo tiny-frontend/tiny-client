@@ -108,7 +108,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
       hostname: "https://mock.hostname/api",
       retryPolicy: {
         maxRetries: 1,
-        delay: 10,
+        delayInMs: 10,
       },
     });
 
@@ -144,7 +144,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
         hostname: "https://mock.hostname/api",
         retryPolicy: {
           maxRetries: 1,
-          delay: 10,
+          delayInMs: 10,
         },
       };
 

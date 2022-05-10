@@ -12,9 +12,9 @@ describe("[retry]", () => {
 
       const fnToRetry = jest.fn(() => Promise.resolve(result));
 
-      await expect(retry(fnToRetry, { delay: 10, maxRetries })).resolves.toBe(
-        result
-      );
+      await expect(
+        retry(fnToRetry, { delayInMs: 10, maxRetries })
+      ).resolves.toBe(result);
     });
     it("should exhaust retries and throw an error after exhausting them", async () => {
       const maxRetries = 3;
@@ -22,9 +22,9 @@ describe("[retry]", () => {
 
       const fnToRetry = jest.fn(() => Promise.reject(error));
 
-      await expect(retry(fnToRetry, { delay: 10, maxRetries })).rejects.toBe(
-        error
-      );
+      await expect(
+        retry(fnToRetry, { delayInMs: 10, maxRetries })
+      ).rejects.toBe(error);
 
       expect(fnToRetry).toBeCalledTimes(4);
     });
@@ -35,13 +35,13 @@ describe("[retry]", () => {
       const fnToRetry = jest.fn(() => Promise.reject(error));
       const spy = jest.spyOn(retryModule, "retry");
 
-      await expect(retry(fnToRetry, { delay: 10, maxRetries })).rejects.toBe(
-        error
-      );
+      await expect(
+        retry(fnToRetry, { delayInMs: 10, maxRetries })
+      ).rejects.toBe(error);
 
-      expect(spy).toBeCalledWith(fnToRetry, { delay: 20, maxRetries: 3 });
-      expect(spy).toBeCalledWith(fnToRetry, { delay: 40, maxRetries: 2 });
-      expect(spy).toBeCalledWith(fnToRetry, { delay: 80, maxRetries: 1 });
+      expect(spy).toBeCalledWith(fnToRetry, { delayInMs: 20, maxRetries: 3 });
+      expect(spy).toBeCalledWith(fnToRetry, { delayInMs: 40, maxRetries: 2 });
+      expect(spy).toBeCalledWith(fnToRetry, { delayInMs: 80, maxRetries: 1 });
     });
   });
 
@@ -53,7 +53,7 @@ describe("[retry]", () => {
       const spy = jest.spyOn(retryModule, "retry");
 
       await expect(
-        retry(fnToRetry, { delay: 10, maxRetries: 0 })
+        retry(fnToRetry, { delayInMs: 10, maxRetries: 0 })
       ).rejects.toBeDefined();
 
       expect(spy).toBeCalledTimes(0);

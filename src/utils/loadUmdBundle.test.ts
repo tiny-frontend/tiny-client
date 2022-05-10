@@ -135,7 +135,7 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           dependenciesMap: {},
           retryPolicy: {
             maxRetries: 1,
-            delay: 10,
+            delayInMs: 10,
           },
         });
 

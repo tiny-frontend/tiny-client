@@ -1,6 +1,6 @@
 export interface RetryPolicy {
   maxRetries: number;
-  delay: number;
+  delayInMs: number;
 }
 
 const wait = (delay: number) =>
@@ -10,15 +10,15 @@ export const retry = async <T>(
   fnToRetry: () => Promise<T>,
   retryPolicy: RetryPolicy
 ): Promise<T> => {
-  const { maxRetries, delay } = retryPolicy;
+  const { maxRetries, delayInMs } = retryPolicy;
   const onError = (error: Error) => {
     if (maxRetries <= 0) {
       throw error;
     }
 
-    return wait(delay).then(() =>
+    return wait(delayInMs).then(() =>
       retry(fnToRetry, {
-        delay: delay * 2,
+        delayInMs: delayInMs * 2,
         maxRetries: maxRetries - 1,
       })
     );

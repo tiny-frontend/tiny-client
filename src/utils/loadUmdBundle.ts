@@ -30,7 +30,7 @@ export const loadUmdBundle = async <T>({
   bundleCacheTtlInMs,
   retryPolicy = {
     maxRetries: 0,
-    delay: 0,
+    delayInMs: 0,
   },
 }: LoadUmdBundleProps): Promise<T> => {
   if (umdBundlesPromiseCacheMap.has(bundleUrl)) {
