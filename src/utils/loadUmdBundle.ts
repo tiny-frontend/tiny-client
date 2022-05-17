@@ -9,22 +9,43 @@ interface UmdBundleCacheItem {
 
 export const umdBundlesPromiseCacheMap = new Map<string, UmdBundleCacheItem>();
 
-interface LoadUmdBundleProps {
+interface LoadUmdBundleWithCacheProps {
   bundleUrl: string;
+  tinyFrontendName: string;
   dependenciesMap: Record<string, unknown>;
   baseCacheKey: string;
   retryPolicy?: RetryPolicy;
 }
 
-export const loadUmdBundle = async <T>({
+export const loadUmdBundleServerWithCache = <T>(
+  props: LoadUmdBundleWithCacheProps
+) =>
+  loadUmdBundleWithCache<T>({
+    ...props,
+    bundleLoader: bundleLoaderServer,
+  });
+
+export const loadUmdBundleClientWithCache = <T>(
+  props: LoadUmdBundleWithCacheProps
+) =>
+  loadUmdBundleWithCache<T>({
+    ...props,
+    bundleLoader: bundleLoaderClient,
+  });
+
+const loadUmdBundleWithCache = async <T>({
   bundleUrl,
+  tinyFrontendName,
   dependenciesMap,
   baseCacheKey,
+  bundleLoader,
   retryPolicy = {
     maxRetries: 0,
     delayInMs: 0,
   },
-}: LoadUmdBundleProps): Promise<T> => {
+}: LoadUmdBundleWithCacheProps & {
+  bundleLoader: BundleLoader<T>;
+}): Promise<T> => {
   const cacheItem = umdBundlesPromiseCacheMap.get(baseCacheKey);
   if (cacheItem && cacheItem.bundleUrl === bundleUrl) {
     return cacheItem.promise as Promise<T>;
@@ -32,9 +53,10 @@ export const loadUmdBundle = async <T>({
 
   const umdBundlePromise = retry(
     () =>
-      loadUmdBundleWithoutCache<T>({
+      bundleLoader({
         bundleUrl,
         dependenciesMap,
+        tinyFrontendName,
       }),
     retryPolicy
   ).catch((err) => {
@@ -50,13 +72,18 @@ export const loadUmdBundle = async <T>({
   return umdBundlePromise;
 };
 
-export const loadUmdBundleWithoutCache = async <T>({
+type BundleLoader<T> = (props: BundleLoaderProps) => Promise<T>;
+
+interface BundleLoaderProps {
+  bundleUrl: string;
+  tinyFrontendName: string;
+  dependenciesMap: Record<string, unknown>;
+}
+
+const bundleLoaderServer = async <T>({
   bundleUrl,
   dependenciesMap,
-}: {
-  bundleUrl: string;
-  dependenciesMap: Record<string, unknown>;
-}): Promise<T> => {
+}: BundleLoaderProps): Promise<T> => {
   const umdBundleSourceResponse = await fetch(bundleUrl);
 
   if (umdBundleSourceResponse.status >= 400) {
@@ -109,9 +136,41 @@ const evalUmdBundle = <T>(
   return module;
 };
 
+const bundleLoaderClient = async <T>({
+  bundleUrl,
+  tinyFrontendName,
+  dependenciesMap,
+}: BundleLoaderProps): Promise<T> => {
+  const script = document.createElement("script");
+  script.src = bundleUrl;
+
+  const loadPromise = new Promise<T>((resolve, reject) => {
+    script.addEventListener("load", () => {
+      resolve((window.tinyfeExports as Record<string, T>)[tinyFrontendName]);
+    });
+    script.addEventListener("error", (event) => {
+      reject(event.error);
+    });
+  });
+
+  window.tinyfeDeps = {
+    ...window.tinyfeDeps,
+    ...dependenciesMap,
+  };
+
+  document.head.appendChild(script);
+
+  return loadPromise;
+};
+
 declare global {
   function define(
     deps: string[],
     moduleFactory: (...args: unknown[]) => any
   ): void;
+
+  interface Window {
+    tinyfeDeps: Record<string, unknown>;
+    tinyfeExports: Record<string, unknown>;
+  }
 }

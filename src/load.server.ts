@@ -3,7 +3,7 @@ import "@ungap/global-this";
 import { TinyClientLoadBundleError } from "./errors";
 import { LoadTinyFrontendOptions, TinyFrontendSsrConfig } from "./types";
 import { getTinyFrontendModuleConfig } from "./utils/getTinyFrontendModuleConfig";
-import { loadUmdBundle } from "./utils/loadUmdBundle";
+import { loadUmdBundleServerWithCache } from "./utils/loadUmdBundle";
 
 export interface TinyFrontendServerResponse<T> {
   tinyFrontend: T;
@@ -21,8 +21,8 @@ export const loadTinyFrontendServer = async <T>({
   const { retryPolicy, cacheTtlInMs = 2 * 60 * 1_000 } = loadingOptions;
 
   const tinyFrontendModuleConfig = await getTinyFrontendModuleConfig({
-    libraryName: name,
-    libraryVersion: contractVersion,
+    tinyFrontendName: name,
+    contractVersion,
     hostname: tinyApiEndpoint,
     retryPolicy,
     cacheTtlInMs,
@@ -34,8 +34,9 @@ export const loadTinyFrontendServer = async <T>({
     : undefined;
 
   try {
-    const tinyFrontend = await loadUmdBundle<T>({
+    const tinyFrontend = await loadUmdBundleServerWithCache<T>({
       bundleUrl: umdBundleUrl,
+      tinyFrontendName: name,
       dependenciesMap,
       baseCacheKey: `${name}-${contractVersion}`,
       retryPolicy,
@@ -47,7 +48,7 @@ export const loadTinyFrontendServer = async <T>({
 
     const tinyFrontendStringToAddToSsrResult = `
 ${cssBundleUrl ? `<link rel="stylesheet" href="${cssBundleUrl}">` : ""}
-<link rel="preload" href="${umdBundleUrl}" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="${umdBundleUrl}" crossorigin="anonymous">
 <script>${moduleConfigScript}</script>`;
 
     const tinyFrontendSsrConfig: TinyFrontendSsrConfig = {
