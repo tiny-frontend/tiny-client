@@ -146,15 +146,17 @@ const bundleLoaderClient = async <T>({
 
   const loadPromise = new Promise<T>((resolve, reject) => {
     script.addEventListener("load", () => {
-      resolve((window.tinyfeExports as Record<string, T>)[tinyFrontendName]);
+      resolve(
+        (window.tinyFrontendExports as Record<string, T>)[tinyFrontendName]
+      );
     });
     script.addEventListener("error", (event) => {
       reject(event.error);
     });
   });
 
-  window.tinyfeDeps = {
-    ...window.tinyfeDeps,
+  window.tinyFrontendDeps = {
+    ...window.tinyFrontendDeps,
     ...dependenciesMap,
   };
 
@@ -170,7 +172,7 @@ declare global {
   ): void;
 
   interface Window {
-    tinyfeDeps: Record<string, unknown>;
-    tinyfeExports: Record<string, unknown>;
+    tinyFrontendDeps: Record<string, unknown>;
+    tinyFrontendExports: Record<string, unknown>;
   }
 }
