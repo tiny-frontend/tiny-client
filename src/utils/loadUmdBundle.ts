@@ -151,7 +151,11 @@ const bundleLoaderClient = async <T>({
       );
     });
     script.addEventListener("error", (event) => {
-      reject(event.error);
+      try {
+        document.head.removeChild(script);
+      } finally {
+        reject(event.error);
+      }
     });
   });
 
