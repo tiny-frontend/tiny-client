@@ -26,8 +26,8 @@ describe("[getTinyFrontendModuleConfig]", () => {
     );
 
     const tinyFrontendModuleConfig = await getTinyFrontendModuleConfig({
-      libraryName: "MOCK_LIB_NAME",
-      libraryVersion: "MOCK_LIB_VERSION",
+      tinyFrontendName: "MOCK_LIB_NAME",
+      contractVersion: "MOCK_LIB_VERSION",
       hostname: "https://mock.hostname/api",
     });
 
@@ -53,8 +53,8 @@ describe("[getTinyFrontendModuleConfig]", () => {
 
     await expect(
       getTinyFrontendModuleConfig({
-        libraryName: "MOCK_LIB_NAME",
-        libraryVersion: "MOCK_LIB_VERSION",
+        tinyFrontendName: "MOCK_LIB_NAME",
+        contractVersion: "MOCK_LIB_VERSION",
         hostname: "https://mock.hostname/api",
       })
     ).rejects.toEqual(
@@ -75,8 +75,8 @@ describe("[getTinyFrontendModuleConfig]", () => {
 
     await expect(
       getTinyFrontendModuleConfig({
-        libraryName: "MOCK_LIB_NAME",
-        libraryVersion: "MOCK_LIB_VERSION",
+        tinyFrontendName: "MOCK_LIB_NAME",
+        contractVersion: "MOCK_LIB_VERSION",
         hostname: "https://mock.hostname/api",
       })
     ).rejects.toEqual(
@@ -108,8 +108,8 @@ describe("[getTinyFrontendModuleConfig]", () => {
     );
 
     const tinyFrontendModuleConfig = await getTinyFrontendModuleConfig({
-      libraryName: "MOCK_LIB_NAME",
-      libraryVersion: "MOCK_LIB_VERSION",
+      tinyFrontendName: "MOCK_LIB_NAME",
+      contractVersion: "MOCK_LIB_VERSION",
       hostname: "https://mock.hostname/api",
       retryPolicy: {
         maxRetries: 1,
@@ -125,8 +125,8 @@ describe("[getTinyFrontendModuleConfig]", () => {
 
   describe("when using cache", () => {
     const mockGetTinyFrontendModuleConfigProps = {
-      libraryName: "MOCK_LIB_NAME",
-      libraryVersion: "MOCK_LIB_VERSION",
+      tinyFrontendName: "MOCK_LIB_NAME",
+      contractVersion: "MOCK_LIB_VERSION",
       hostname: "https://mock.hostname/api",
     };
 

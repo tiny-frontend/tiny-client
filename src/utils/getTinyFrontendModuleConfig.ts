@@ -27,8 +27,8 @@ export const moduleConfigPromiseCacheMap = new Map<
 >();
 
 export const getTinyFrontendModuleConfig = async ({
-  libraryName,
-  libraryVersion,
+  tinyFrontendName,
+  contractVersion,
   hostname,
   retryPolicy = {
     maxRetries: 0,
@@ -36,7 +36,7 @@ export const getTinyFrontendModuleConfig = async ({
   },
   cacheTtlInMs,
 }: GetTinyFrontendModuleConfigProps): Promise<TinyFrontendModuleConfig> => {
-  const cacheKey = `${libraryName}-${libraryVersion}-${hostname}`;
+  const cacheKey = `${tinyFrontendName}-${contractVersion}-${hostname}`;
 
   const cacheItem = moduleConfigPromiseCacheMap.get(cacheKey);
   if (
@@ -52,8 +52,8 @@ export const getTinyFrontendModuleConfig = async ({
   const moduleConfigPromise = retry(
     () =>
       getTinyFrontendModuleConfigBase({
-        libraryName,
-        libraryVersion,
+        tinyFrontendName,
+        contractVersion: contractVersion,
         hostname,
       }),
     retryPolicy
@@ -71,36 +71,36 @@ export const getTinyFrontendModuleConfig = async ({
 };
 
 interface GetTinyFrontendModuleConfigBaseProps {
-  libraryName: string;
-  libraryVersion: string;
+  tinyFrontendName: string;
+  contractVersion: string;
   hostname: string;
   retryPolicy?: RetryPolicy;
 }
 
 const getTinyFrontendModuleConfigBase = async ({
-  libraryName,
-  libraryVersion,
+  tinyFrontendName,
+  contractVersion,
   hostname,
 }: GetTinyFrontendModuleConfigBaseProps): Promise<TinyFrontendModuleConfig> => {
   let response;
 
   try {
     response = await fetch(
-      `${hostname}/tiny/latest/${libraryName}/${libraryVersion}`,
+      `${hostname}/tiny/latest/${tinyFrontendName}/${contractVersion}`,
       { mode: "cors" }
     );
   } catch (err) {
     throw new TinyClientFetchError(
-      libraryName,
-      libraryVersion,
+      tinyFrontendName,
+      contractVersion,
       `with error: ${(err as Record<string, string>)?.message}`
     );
   }
 
   if (response.status >= 400) {
     throw new TinyClientFetchError(
-      libraryName,
-      libraryVersion,
+      tinyFrontendName,
+      contractVersion,
       `with status ${response.status} and body '${await response.text()}'`
     );
   }
@@ -111,8 +111,8 @@ const getTinyFrontendModuleConfigBase = async ({
     responseJson = await response.json();
   } catch (err) {
     throw new TinyClientFetchError(
-      libraryName,
-      libraryVersion,
+      tinyFrontendName,
+      contractVersion,
       `while getting JSON body`
     );
   }

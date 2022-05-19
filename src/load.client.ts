@@ -1,7 +1,7 @@
 import { TinyClientLoadBundleError } from "./errors";
 import { LoadTinyFrontendOptions, TinyFrontendModuleConfig } from "./types";
 import { getTinyFrontendModuleConfig } from "./utils/getTinyFrontendModuleConfig";
-import { loadUmdBundle } from "./utils/loadUmdBundle";
+import { loadUmdBundleClientWithCache } from "./utils/loadUmdBundle";
 
 export const loadTinyFrontendClient = async <T>({
   name,
@@ -19,8 +19,8 @@ export const loadTinyFrontendClient = async <T>({
   const tinyFrontendModuleConfig =
     tinyFrontendModuleConfigFromSsr ??
     (await getTinyFrontendModuleConfig({
-      libraryName: name,
-      libraryVersion: contractVersion,
+      tinyFrontendName: name,
+      contractVersion,
       hostname: tinyApiEndpoint,
       retryPolicy,
       cacheTtlInMs,
@@ -37,8 +37,9 @@ export const loadTinyFrontendClient = async <T>({
   }
 
   try {
-    return await loadUmdBundle({
+    return await loadUmdBundleClientWithCache({
       bundleUrl: `${tinyApiEndpoint}/tiny/bundle/${tinyFrontendModuleConfig.umdBundle}`,
+      tinyFrontendName: name,
       dependenciesMap,
       baseCacheKey: `${name}-${contractVersion}`,
       retryPolicy,

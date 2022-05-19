@@ -6,7 +6,10 @@ import {
 } from "msw";
 
 import { server } from "../mocks/server";
-import { loadUmdBundle, umdBundlesPromiseCacheMap } from "./loadUmdBundle";
+import {
+  loadUmdBundleServerWithCache,
+  umdBundlesPromiseCacheMap,
+} from "./loadUmdBundle";
 
 interface MockBundle {
   mockExport: string;
@@ -25,7 +28,8 @@ describe("[loadUmdBundle]", () => {
       )
     );
 
-    const umdBundle = await loadUmdBundle<MockBundle>({
+    const umdBundle = await loadUmdBundleServerWithCache<MockBundle>({
+      tinyFrontendName: "mockTinyFrontendName",
       bundleUrl: "https://mock.hostname/api/mockBundle.js",
       dependenciesMap: {},
       baseCacheKey: "bundle-1.0.0",
@@ -46,7 +50,8 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
       )
     );
 
-    const umdBundle = await loadUmdBundle<MockBundle>({
+    const umdBundle = await loadUmdBundleServerWithCache<MockBundle>({
+      tinyFrontendName: "mockTinyFrontendName",
       bundleUrl: "https://mock.hostname/api/mockBundle.js",
       dependenciesMap: {
         myMockDep: "MOCK_DEP",
@@ -72,7 +77,8 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
     );
 
     await expect(
-      loadUmdBundle<MockBundle>({
+      loadUmdBundleServerWithCache<MockBundle>({
+        tinyFrontendName: "mockTinyFrontendName",
         bundleUrl: "https://mock.hostname/api/mockBundle.js",
         dependenciesMap: {},
         baseCacheKey: "bundle-1.0.0",
@@ -99,7 +105,8 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
         );
 
         await expect(
-          loadUmdBundle<MockBundle>({
+          loadUmdBundleServerWithCache<MockBundle>({
+            tinyFrontendName: "mockTinyFrontendName",
             bundleUrl: "https://mock.hostname/api/mockBundle.js",
             dependenciesMap: {},
             baseCacheKey: "bundle-1.0.0",
@@ -130,7 +137,8 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           })
         );
 
-        const umdBundle = await loadUmdBundle<MockBundle>({
+        const umdBundle = await loadUmdBundleServerWithCache<MockBundle>({
+          tinyFrontendName: "mockTinyFrontendName",
           bundleUrl: "https://mock.hostname/api/mockBundle.js",
           dependenciesMap: {},
           retryPolicy: {
@@ -146,7 +154,8 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
   });
 
   describe("when using cache", () => {
-    const mockLoadUmdBundleOptions = {
+    const mockLoadUmdBundleServerWithCacheOptions = {
+      tinyFrontendName: "mockTinyFrontendName",
       bundleUrl: "https://mock.hostname/api/mockBundle.js",
       dependenciesMap: {},
       baseCacheKey: "bundle-1.0.0",
@@ -171,8 +180,12 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
       describe("when called in parallel", () => {
         it("should reuse results", async () => {
           const [umdBundle1, umdBundle2] = await Promise.all([
-            loadUmdBundle<MockBundle>(mockLoadUmdBundleOptions),
-            loadUmdBundle<MockBundle>(mockLoadUmdBundleOptions),
+            loadUmdBundleServerWithCache<MockBundle>(
+              mockLoadUmdBundleServerWithCacheOptions
+            ),
+            loadUmdBundleServerWithCache<MockBundle>(
+              mockLoadUmdBundleServerWithCacheOptions
+            ),
           ]);
 
           expect(umdBundle1).toEqual({ mockExport: "Hello World" });
@@ -184,13 +197,13 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
 
       describe("when called in sequence", () => {
         it("should reuse results", async () => {
-          const umdBundle1 = await loadUmdBundle<MockBundle>(
-            mockLoadUmdBundleOptions
+          const umdBundle1 = await loadUmdBundleServerWithCache<MockBundle>(
+            mockLoadUmdBundleServerWithCacheOptions
           );
           expect(umdBundle1).toEqual({ mockExport: "Hello World" });
 
-          const umdBundle2 = await loadUmdBundle<MockBundle>(
-            mockLoadUmdBundleOptions
+          const umdBundle2 = await loadUmdBundleServerWithCache<MockBundle>(
+            mockLoadUmdBundleServerWithCacheOptions
           );
           expect(umdBundle2).toEqual({ mockExport: "Hello World" });
 
@@ -219,22 +232,23 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
             )
           );
 
-          const umdBundle1 = await loadUmdBundle<MockBundle>(
-            mockLoadUmdBundleOptions
+          const umdBundle1 = await loadUmdBundleServerWithCache<MockBundle>(
+            mockLoadUmdBundleServerWithCacheOptions
           );
           expect(umdBundle1).toEqual({ mockExport: "Hello World" });
 
-          const umdBundle2 = await loadUmdBundle<MockBundle>({
-            ...mockLoadUmdBundleOptions,
+          const umdBundle2 = await loadUmdBundleServerWithCache<MockBundle>({
+            ...mockLoadUmdBundleServerWithCacheOptions,
             bundleUrl: "https://mock.hostname/api/mockBundle2.js",
           });
           expect(umdBundle2).toEqual({ mockExport: "This is bundle2" });
 
           expect(apiCallsCount).toEqual(1);
 
-          const umdBundle1SecondTime = await loadUmdBundle<MockBundle>(
-            mockLoadUmdBundleOptions
-          );
+          const umdBundle1SecondTime =
+            await loadUmdBundleServerWithCache<MockBundle>(
+              mockLoadUmdBundleServerWithCacheOptions
+            );
           expect(umdBundle1SecondTime).toEqual({ mockExport: "Hello World" });
 
           expect(umdBundle1).not.toBe(umdBundle1SecondTime);
@@ -258,8 +272,12 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
             )
           );
 
-          const promise1 = loadUmdBundle<MockBundle>(mockLoadUmdBundleOptions);
-          const promise2 = loadUmdBundle<MockBundle>(mockLoadUmdBundleOptions);
+          const promise1 = loadUmdBundleServerWithCache<MockBundle>(
+            mockLoadUmdBundleServerWithCacheOptions
+          );
+          const promise2 = loadUmdBundleServerWithCache<MockBundle>(
+            mockLoadUmdBundleServerWithCacheOptions
+          );
 
           await expect(promise1).rejects.toBeDefined();
           await expect(promise2).rejects.toBeDefined();
@@ -283,10 +301,14 @@ define(['myMockDep', 'myMockDep2'], (myMockDep, myMockDep2) => ({ mockExport: \`
           );
 
           await expect(
-            loadUmdBundle<MockBundle>(mockLoadUmdBundleOptions)
+            loadUmdBundleServerWithCache<MockBundle>(
+              mockLoadUmdBundleServerWithCacheOptions
+            )
           ).rejects.toBeDefined();
           await expect(
-            loadUmdBundle<MockBundle>(mockLoadUmdBundleOptions)
+            loadUmdBundleServerWithCache<MockBundle>(
+              mockLoadUmdBundleServerWithCacheOptions
+            )
           ).rejects.toBeDefined();
 
           expect(apiCallsCount).toEqual(2);
