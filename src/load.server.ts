@@ -48,7 +48,7 @@ export const loadTinyFrontendServer = async <T>({
 
     const tinyFrontendStringToAddToSsrResult = `
 ${cssBundleUrl ? `<link rel="stylesheet" href="${cssBundleUrl}">` : ""}
-<link rel="preload" href="${umdBundleUrl}" as="script" crossorigin="anonymous">
+<link rel="preload" href="${umdBundleUrl}" as="script">
 <script>${moduleConfigScript}</script>`;
 
     const tinyFrontendSsrConfig: TinyFrontendSsrConfig = {
