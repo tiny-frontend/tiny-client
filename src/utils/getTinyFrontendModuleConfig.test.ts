@@ -59,7 +59,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
       })
     ).rejects.toEqual(
       new Error(
-        `Failed to fetch tiny frontend MOCK_LIB_NAME version MOCK_LIB_VERSION from API, with status ${status} and body ''`
+        `Failed to fetch tiny frontend MOCK_LIB_NAME version MOCK_LIB_VERSION from API, with status ${status}`
       )
     );
   });
@@ -81,7 +81,7 @@ describe("[getTinyFrontendModuleConfig]", () => {
       })
     ).rejects.toEqual(
       new Error(
-        `Failed to fetch tiny frontend MOCK_LIB_NAME version MOCK_LIB_VERSION from API, while getting JSON body`
+        `Failed to fetch tiny frontend MOCK_LIB_NAME version MOCK_LIB_VERSION from API, while getting JSON body with error: Unexpected token T in JSON at position 0`
       )
     );
   });
