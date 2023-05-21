@@ -101,19 +101,25 @@ const getTinyFrontendModuleConfigBase = async ({
     throw new TinyClientFetchError(
       tinyFrontendName,
       contractVersion,
-      `with status ${response.status} and body '${await response.text()}'`
+      `with status ${response.status}`,
+      await response.text()
     );
   }
 
   let responseJson: TinyFrontendModuleConfig;
+  let responseText: string | undefined;
 
   try {
-    responseJson = await response.json();
+    responseText = await response.text();
+    responseJson = JSON.parse(responseText);
   } catch (err) {
     throw new TinyClientFetchError(
       tinyFrontendName,
       contractVersion,
-      `while getting JSON body`
+      `while getting JSON body with error: ${
+        (err as Record<string, string>)?.message
+      }`,
+      responseText
     );
   }
 
